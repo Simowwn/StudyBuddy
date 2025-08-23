@@ -1,20 +1,37 @@
 from rest_framework import viewsets, status, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from .models import Quiz, Variant, Item
 from .serializers import (QuizSerializer, VariantSerializer, ItemSerializer)
 
 class QuizViewSet(viewsets.ModelViewSet):
-    queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        # Only return quizzes created by the current user
+        return Quiz.objects.filter(user=self.request.user)
+    
+    def perform_create(self, serializer):
+        # Automatically set the user to the current authenticated user
+        serializer.save(user=self.request.user)
 
 class VariantViewSet(viewsets.ModelViewSet):
-    queryset = Variant.objects.all()
     serializer_class = VariantSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        # Only return variants of quizzes owned by the current user
+        return Variant.objects.filter(quiz__user=self.request.user)
 
 class ItemViewSet(viewsets.ModelViewSet):
-    queryset = Item.objects.all()
     serializer_class = ItemSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        # Only return items of variants that belong to quizzes owned by the current user
+        return Item.objects.filter(variant__quiz__user=self.request.user)
 
     def create(self, request, *args, **kwargs):
         name_field = request.data.get("name", "")

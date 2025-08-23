@@ -20,7 +20,8 @@ class VariantSerializer(serializers.ModelSerializer):
 
 class QuizSerializer(serializers.ModelSerializer):
     variants = VariantSerializer(many=True, read_only=True)  # nested for GET
+    user = serializers.ReadOnlyField(source='user.username')  # Show username, read-only
 
     class Meta:
         model = Quiz
-        fields = ["id", "title", "created_at", "variants"]
+        fields = ["id", "title", "user", "created_at", "variants"]
