@@ -265,16 +265,16 @@ function Matching() {
     // Show validation summary in modal
     if (totalMatched === 0) {
       setModalMessage("No items have been matched yet. Please drag items to their correct categories.");
-      setModalGif("https://media.giphy.com/media/14uQ3cOFteDaU/giphy.gif"); // neutral gif
+      setModalGif("https://media.tenor.com/5t-iIxnzE8MAAAAM/sad-bear-cry.gif"); // neutral gif
     } else {
       const percentage = Math.round((correctCount / totalMatched) * 100);
       setModalMessage(
         `Validation Results:\n${correctCount}/${totalMatched} items correctly matched (${percentage}%)`
       );
       if (percentage < 50) {
-        setModalGif("https://media.giphy.com/media/3o6ZtaO9BZHcOjmErm/giphy.gif"); // fail gif
+        setModalGif("https://i.pinimg.com/originals/26/23/fa/2623fa72b1bc00b166e1aa3b1b6856cf.gif"); // fail gif
       } else {
-        setModalGif("https://media.giphy.com/media/111ebonMs90YLu/giphy.gif"); // success gif
+        setModalGif("https://i.pinimg.com/originals/26/23/fa/2623fa72b1bc00b166e1aa3b1b6856cf.gif"); // success gif
       }
     }
     setShowModal(true);
