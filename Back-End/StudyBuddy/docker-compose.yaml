@@ -1,0 +1,36 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:17
+    container_name: studybuddy_db
+    restart: always
+    environment:
+      POSTGRES_DB: studybudy
+      POSTGRES_USER: studybudy_admin
+      POSTGRES_PASSWORD: Y0urLv3isLik3
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  web:
+    build: .
+    container_name: studybuddy_web
+    command: python manage.py runserver 0.0.0.0:8000
+    restart: always
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      POSTGRES_DB: studybudy
+      POSTGRES_USER: studybudy_admin
+      POSTGRES_PASSWORD: Y0urLv3isLik3
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+
+volumes:
+  postgres_data:

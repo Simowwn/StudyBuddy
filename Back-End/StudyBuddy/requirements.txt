@@ -1,4 +1,6 @@
-django
+Django>=5.0,<6.0
 djangorestframework
-environs
 djangorestframework-simplejwt
+environs
+psycopg2-binary>=2.9
+gunicorn
