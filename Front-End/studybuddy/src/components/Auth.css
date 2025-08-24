@@ -98,6 +98,16 @@
   border: 1px solid #feb2b2;
 }
 
+.success-message {
+  background: #f0fff4;
+  color: #22543d;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  border: 1px solid #9ae6b4;
+}
+
 .auth-footer {
   margin-top: 30px;
   color: #666;

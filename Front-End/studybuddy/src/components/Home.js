@@ -1,13 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './Home.css';
 
 function Home() {
   const navigate = useNavigate();
+  const { logout, user } = useAuth();
 
   const handleLogout = () => {
-    // Here you would typically clear user session/tokens
-    console.log('Logging out user');
+    logout();
     navigate('/login');
   };
 

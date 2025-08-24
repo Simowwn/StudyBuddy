@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import Register from './components/Register';
 import Login from './components/Login';
 import Home from './components/Home';
@@ -11,20 +13,57 @@ import Matching from './components/Matching';
 
 function App() {
   return (
-    <Router>
-      <div className="App">
-        <Routes>
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/quiz" element={<Quiz />} />
-          <Route path="/variants" element={<Variants />} />
-          <Route path="/items" element={<Items />} />
-          <Route path="/matching" element={<Matching />} />
-          <Route path="/" element={<Navigate to="/login" replace />} />
-        </Routes>
-      </div>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <div className="App">
+          <Routes>
+            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<Login />} />
+            <Route 
+              path="/home" 
+              element={
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/quiz" 
+              element={
+                <ProtectedRoute>
+                  <Quiz />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/variants" 
+              element={
+                <ProtectedRoute>
+                  <Variants />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/items" 
+              element={
+                <ProtectedRoute>
+                  <Items />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/matching" 
+              element={
+                <ProtectedRoute>
+                  <Matching />
+                </ProtectedRoute>
+              } 
+            />
+            <Route path="/" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 

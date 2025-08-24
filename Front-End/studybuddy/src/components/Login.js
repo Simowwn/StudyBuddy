@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './Auth.css';
 
 function Login() {
@@ -8,7 +9,20 @@ function Login() {
     password: ''
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
+
+  // Check for success message from registration
+  React.useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message);
+      // Clear the message from location state
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   const handleChange = (e) => {
     setFormData({
@@ -17,7 +31,7 @@ function Login() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!formData.username || !formData.password) {
@@ -25,11 +39,19 @@ function Login() {
       return;
     }
 
-    // Here you would typically make an API call to authenticate the user
-    console.log('Logging in user:', formData.username);
-    
-    // For demo purposes, redirect to home
-    navigate('/home');
+    setLoading(true);
+    setError('');
+
+    try {
+      await login(formData);
+      // Redirect to the page they were trying to visit or home
+      const from = location.state?.from?.pathname || '/home';
+      navigate(from, { replace: true });
+    } catch (error) {
+      setError(error.message || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -64,10 +86,11 @@ function Login() {
               />
             </div>
             
+            {successMessage && <div className="success-message">{successMessage}</div>}
             {error && <div className="error-message">{error}</div>}
             
-            <button type="submit" className="auth-button">
-              Login
+            <button type="submit" className="auth-button" disabled={loading}>
+              {loading ? 'Logging in...' : 'Login'}
             </button>
           </form>
           

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './Auth.css';
 
 function Register() {
@@ -9,7 +10,9 @@ function Register() {
     confirmPassword: ''
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { register } = useAuth();
 
   const handleChange = (e) => {
     setFormData({
@@ -18,7 +21,7 @@ function Register() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (formData.password !== formData.confirmPassword) {
@@ -31,11 +34,22 @@ function Register() {
       return;
     }
 
-    // Here you would typically make an API call to register the user
-    console.log('Registering user:', formData.username);
-    
-    // For demo purposes, redirect to login
-    navigate('/login');
+    setLoading(true);
+    setError('');
+
+    try {
+      await register({
+        username: formData.username,
+        password: formData.password
+      });
+      navigate('/login', { 
+        state: { message: 'Registration successful! Please login.' }
+      });
+    } catch (error) {
+      setError(error.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -85,8 +99,8 @@ function Register() {
             
             {error && <div className="error-message">{error}</div>}
             
-            <button type="submit" className="auth-button">
-              Register
+            <button type="submit" className="auth-button" disabled={loading}>
+              {loading ? 'Registering...' : 'Register'}
             </button>
           </form>
           
