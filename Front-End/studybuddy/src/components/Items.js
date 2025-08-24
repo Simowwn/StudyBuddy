@@ -1,34 +1,34 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import quizService from '../services/quizService';
 import './Items.css';
 
 function Items() {
   const navigate = useNavigate();
-  const [selectedQuiz, setSelectedQuiz] = useState('');
+  const location = useLocation();
   const [selectedVariant, setSelectedVariant] = useState('');
   const [items, setItems] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [isValid, setIsValid] = useState(true);
 
-  // Mock data for quizzes and variants
-  const quizzes = [
-    'Biology Quiz',
-    'Chemistry Quiz',
-    'Physics Quiz',
-    'Math Quiz'
-  ];
+  // Get quiz data and variants from navigation state
+  const quizId = location.state?.quizId;
+  const quizTitle = location.state?.quizTitle || 'Untitled Quiz';
+  const variants = location.state?.variants || [];
 
-  const variants = [
-    'Option A',
-    'Option B', 
-    'Option C',
-    'Option D'
-  ];
+  // Check if we have valid data and redirect if needed
+  useEffect(() => {
+    if (!quizId || !variants.length) {
+      setIsValid(false);
+      navigate('/quiz');
+    }
+  }, [quizId, variants.length, navigate]);
 
-  const handleQuizChange = (e) => {
-    setSelectedQuiz(e.target.value);
-    setSelectedVariant('');
-    setError('');
-  };
+  // Don't render if data is invalid
+  if (!isValid) {
+    return null;
+  }
 
   const handleVariantChange = (e) => {
     setSelectedVariant(e.target.value);
@@ -40,14 +40,9 @@ function Items() {
     setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!selectedQuiz) {
-      setError('Please select a quiz');
-      return;
-    }
-
     if (!selectedVariant) {
       setError('Please select a variant');
       return;
@@ -58,21 +53,64 @@ function Items() {
       return;
     }
 
-    // Here you would typically save the items
-    console.log('Quiz:', selectedQuiz);
-    console.log('Variant:', selectedVariant);
-    console.log('Items:', items);
-    
-    // Navigate to home or success page
-    navigate('/home');
+    setLoading(true);
+    setError('');
+
+    try {
+      // Parse items from comma-separated string
+      const itemNames = items.split(',').map(item => item.trim()).filter(item => item);
+      
+      if (itemNames.length === 0) {
+        setError('Please enter at least one valid item');
+        return;
+      }
+
+      // Find the selected variant object
+      const selectedVariantObj = variants.find(v => v.name === selectedVariant);
+      if (!selectedVariantObj) {
+        setError('Selected variant not found');
+        return;
+      }
+
+      // Create all items in a single request with comma-separated names
+      const itemData = {
+        name: items.trim(), // Send the original comma-separated string
+        variant: selectedVariantObj.id
+      };
+      
+      const createdItems = await quizService.createItem(itemData);
+      
+      console.log('Items created successfully:', createdItems);
+      
+      // Navigate to matching page with quiz data
+      navigate('/matching', { 
+        state: { 
+          quizId: quizId,
+          quizTitle: quizTitle,
+          variants: variants,
+          items: createdItems,
+          message: `Quiz "${quizTitle}" created successfully! Now let's set up the matching.`
+        } 
+      });
+    } catch (error) {
+      console.error('Error creating items:', error);
+      setError(error.message || 'Failed to create items. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleBack = () => {
-    navigate('/variants');
+    navigate('/variants', { 
+      state: { 
+        quizId: quizId,
+        quizTitle: quizTitle 
+      } 
+    });
   };
 
   return (
-    <div className="items-container">
+    <div className="items-form">
       <div className="items-header">
         <div className="items-icon-circle">
           <span className="list-icon">📝</span>
@@ -84,18 +122,10 @@ function Items() {
       <div className="items-form">
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="quizSelect">Select Quiz</label>
-            <select
-              id="quizSelect"
-              value={selectedQuiz}
-              onChange={handleQuizChange}
-              required
-            >
-              <option value="">Choose a quiz...</option>
-              {quizzes.map((quiz, index) => (
-                <option key={index} value={quiz}>{quiz}</option>
-              ))}
-            </select>
+            <label>Quiz Title</label>
+            <div className="quiz-title-display">
+              <h3>{quizTitle}</h3>
+            </div>
           </div>
 
           <div className="form-group">
@@ -105,11 +135,11 @@ function Items() {
               value={selectedVariant}
               onChange={handleVariantChange}
               required
-              disabled={!selectedQuiz}
+              disabled={loading}
             >
               <option value="">Choose a variant...</option>
               {variants.map((variant, index) => (
-                <option key={index} value={variant}>{variant}</option>
+                <option key={index} value={variant.name}>{variant.name}</option>
               ))}
             </select>
           </div>
@@ -123,6 +153,7 @@ function Items() {
               placeholder="Enter your quiz items separated by commas (e.g., Question 1, Question 2, Question 3...)"
               rows="6"
               required
+              disabled={loading}
             />
             <p className="form-hint">
               Enter each quiz item separated by commas. You can add as many items as you need.
@@ -131,13 +162,17 @@ function Items() {
 
           {error && <div className="error-message">{error}</div>}
           
-          <button 
-            type="submit" 
-            className="items-button"
-            disabled={!selectedQuiz || !selectedVariant || !items.trim()}
-          >
-            Create Quiz →
-          </button>
+          <div className="form-actions">
+
+            
+            <button 
+              type="submit" 
+              className="items-button"
+              disabled={!selectedVariant || !items.trim() || loading}
+            >
+              {loading ? 'Creating Items...' : 'Next: Start Matching →'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

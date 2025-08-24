@@ -1,13 +1,25 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import quizService from '../services/quizService';
 import './Quiz.css';
 
 function Quiz() {
   const [quizTitle, setQuizTitle] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    setQuizTitle(value);
+    
+    // Clear error when user starts typing
+    if (error) {
+      setError('');
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!quizTitle.trim()) {
@@ -15,12 +27,45 @@ function Quiz() {
       return;
     }
 
-    // Here you would typically save the quiz title to your backend
-    console.log('Creating quiz:', quizTitle);
-    
-    // For demo purposes, redirect to variants
-    navigate('/variants');
+    if (quizTitle.trim().length < 3) {
+      setError('Quiz title must be at least 3 characters long');
+      return;
+    }
+
+    if (quizTitle.trim().length > 100) {
+      setError('Quiz title must be less than 100 characters');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      // Create the quiz via API
+      const quizData = {
+        title: quizTitle.trim()
+      };
+      
+      const createdQuiz = await quizService.createQuiz(quizData);
+      console.log('Quiz created successfully:', createdQuiz);
+      
+      // Navigate to variants page with quiz data
+      navigate('/variants', { 
+        state: { 
+          quizId: createdQuiz.id,
+          quizTitle: createdQuiz.title 
+        } 
+      });
+    } catch (error) {
+      console.error('Error creating quiz:', error);
+      setError(error.message || 'Failed to create quiz. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const isTitleValid = quizTitle.trim().length >= 3 && quizTitle.trim().length <= 100;
+  const characterCount = quizTitle.length;
 
   return (
     <div className="quiz-container">
@@ -40,18 +85,32 @@ function Quiz() {
               type="text"
               id="quizTitle"
               value={quizTitle}
-              onChange={(e) => setQuizTitle(e.target.value)}
-              placeholder="Enter your quiz title..."
+              onChange={handleInputChange}
+              placeholder="e.g., Math Fundamentals, History Quiz, Science Trivia..."
               required
+              disabled={loading}
+              maxLength={100}
             />
+            <div className="input-info">
+              <span className={`character-count ${characterCount > 100 ? 'error' : characterCount > 80 ? 'warning' : ''}`}>
+                {characterCount}/100 characters
+              </span>
+              {quizTitle.trim() && (
+                <span className={`validation-status ${isTitleValid ? 'valid' : 'invalid'}`}>
+                  {isTitleValid ? '✓ Valid title' : '✗ Title too short'}
+                </span>
+              )}
+            </div>
           </div>
+          
+          {error && <div className="error-message">{error}</div>}
           
           <button 
             type="submit" 
             className="quiz-button"
-            disabled={!quizTitle.trim()}
+            disabled={!isTitleValid || loading}
           >
-            Create Quiz
+            {loading ? 'Creating Quiz...' : 'Create Quiz'}
           </button>
         </form>
       </div>

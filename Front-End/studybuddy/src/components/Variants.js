@@ -1,25 +1,32 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import quizService from '../services/quizService';
 import './Variants.css';
 
 function Variants() {
   const navigate = useNavigate();
-  const [selectedQuiz, setSelectedQuiz] = useState('');
+  const location = useLocation();
   const [variants, setVariants] = useState(['']);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [isValid, setIsValid] = useState(true);
 
-  // Mock data for quizzes
-  const quizzes = [
-    'Biology Quiz',
-    'Chemistry Quiz',
-    'Physics Quiz',
-    'Math Quiz'
-  ];
+  // Get quiz data from navigation state
+  const quizId = location.state?.quizId;
+  const quizTitle = location.state?.quizTitle || 'Untitled Quiz';
 
-  const handleQuizChange = (e) => {
-    setSelectedQuiz(e.target.value);
-    setError('');
-  };
+  // Check if we have valid data and redirect if needed
+  useEffect(() => {
+    if (!quizId) {
+      setIsValid(false);
+      navigate('/quiz');
+    }
+  }, [quizId, navigate]);
+
+  // Don't render if data is invalid
+  if (!isValid) {
+    return null;
+  }
 
   const addVariant = () => {
     setVariants([...variants, '']);
@@ -38,25 +45,48 @@ function Variants() {
     setVariants(newVariants);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!selectedQuiz) {
-      setError('Please select a quiz');
-      return;
-    }
-
     const validVariants = variants.filter(v => v.trim() !== '');
     if (validVariants.length < 2) {
       setError('Please add at least 2 variants');
       return;
     }
 
-    // Here you would typically save the variants
-    console.log('Quiz:', selectedQuiz);
-    console.log('Variants:', validVariants);
-    
-    navigate('/items');
+    setLoading(true);
+    setError('');
+
+    try {
+      // Create variants via API
+      const createdVariants = [];
+      
+      for (const variantName of validVariants) {
+        const variantData = {
+          name: variantName.trim(),
+          quiz: quizId
+        };
+        
+        const createdVariant = await quizService.createVariant(variantData);
+        createdVariants.push(createdVariant);
+      }
+      
+      console.log('Variants created successfully:', createdVariants);
+      
+      // Navigate to items page with quiz and variants data
+      navigate('/items', { 
+        state: { 
+          quizId: quizId,
+          quizTitle: quizTitle, 
+          variants: createdVariants 
+        } 
+      });
+    } catch (error) {
+      console.error('Error creating variants:', error);
+      setError(error.message || 'Failed to create variants. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleBack = () => {
@@ -76,18 +106,10 @@ function Variants() {
       <div className="variants-form">
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="quizSelect">Select Quiz</label>
-            <select
-              id="quizSelect"
-              value={selectedQuiz}
-              onChange={handleQuizChange}
-              required
-            >
-              <option value="">Choose a quiz...</option>
-              {quizzes.map((quiz, index) => (
-                <option key={index} value={quiz}>{quiz}</option>
-              ))}
-            </select>
+            <label>Quiz Title</label>
+            <div className="quiz-title-display">
+              <h3>{quizTitle}</h3>
+            </div>
           </div>
 
           <div className="form-group">
@@ -101,12 +123,14 @@ function Variants() {
                     onChange={(e) => handleVariantChange(index, e.target.value)}
                     placeholder={`Variant ${index + 1}...`}
                     required
+                    disabled={loading}
                   />
                   {variants.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeVariant(index)}
                       className="remove-variant-btn"
+                      disabled={loading}
                     >
                       ✕
                     </button>
@@ -118,6 +142,7 @@ function Variants() {
               type="button"
               onClick={addVariant}
               className="add-variant-btn"
+              disabled={loading}
             >
               + Add Variant
             </button>
@@ -125,13 +150,17 @@ function Variants() {
 
           {error && <div className="error-message">{error}</div>}
           
-          <button 
-            type="submit" 
-            className="variants-button"
-            disabled={!selectedQuiz || variants.filter(v => v.trim() !== '').length < 2}
-          >
-            Next: Add Items →
-          </button>
+          <div className="form-actions">
+           
+            
+            <button 
+              type="submit" 
+              className="variants-button"
+              disabled={variants.filter(v => v.trim() !== '').length < 2 || loading}
+            >
+              {loading ? 'Creating Variants...' : 'Next: Add Items →'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

@@ -23,13 +23,13 @@ class ApiService {
   }
 
   // Handle API responses
-  async handleResponse(response) {
+  async handleResponse(response, originalData = null) {
     if (response.status === 401) {
       // Token expired, try to refresh
       try {
         await authService.refreshToken();
         // Retry the original request with new token
-        return this.retryRequest(response.url, response.method, response.body);
+        return this.retryRequest(response.url, response.method, originalData);
       } catch (error) {
         // Refresh failed, redirect to login
         authService.logout();
@@ -47,13 +47,19 @@ class ApiService {
   }
 
   // Retry request with new token
-  async retryRequest(url, method, body) {
-    const response = await fetch(url, {
+  async retryRequest(url, method, originalData = null) {
+    const requestOptions = {
       method,
       headers: this.getHeaders(),
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    return this.handleResponse(response);
+    };
+
+    // Only add body for non-GET/HEAD requests
+    if (method !== 'GET' && method !== 'HEAD' && originalData) {
+      requestOptions.body = JSON.stringify(originalData);
+    }
+
+    const response = await fetch(url, requestOptions);
+    return this.handleResponse(response, originalData);
   }
 
   // Generic API methods
@@ -76,7 +82,7 @@ class ApiService {
         headers: this.getHeaders(includeAuth),
         body: JSON.stringify(data),
       });
-      return this.handleResponse(response);
+      return this.handleResponse(response, data);
     } catch (error) {
       throw error;
     }
@@ -89,7 +95,7 @@ class ApiService {
         headers: this.getHeaders(includeAuth),
         body: JSON.stringify(data),
       });
-      return this.handleResponse(response);
+      return this.handleResponse(response, data);
     } catch (error) {
       throw error;
     }
@@ -102,7 +108,7 @@ class ApiService {
         headers: this.getHeaders(includeAuth),
         body: JSON.stringify(data),
       });
-      return this.handleResponse(response);
+      return this.handleResponse(response, data);
     } catch (error) {
       throw error;
     }

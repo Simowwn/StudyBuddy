@@ -59,6 +59,14 @@ function App() {
                 </ProtectedRoute>
               } 
             />
+            <Route 
+              path="/matching/:quizId" 
+              element={
+                <ProtectedRoute>
+                  <Matching />
+                </ProtectedRoute>
+              } 
+            />
             <Route path="/" element={<Navigate to="/login" replace />} />
           </Routes>
         </div>
