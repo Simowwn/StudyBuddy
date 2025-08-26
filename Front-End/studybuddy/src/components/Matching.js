@@ -30,6 +30,8 @@ function Matching() {
   });
   const [validationResults, setValidationResults] = useState({});
   const [showValidation, setShowValidation] = useState(false);
+  // Store original items for reset functionality
+  const [originalItems, setOriginalItems] = useState([]);
 
   // modal states
   const [showModal, setShowModal] = useState(false);
@@ -60,6 +62,7 @@ function Matching() {
           correctVariantId: item.variant // Store the correct variant ID for validation
         }));
         setQuizItems(formattedItems);
+        setOriginalItems(formattedItems); // Store original items for reset
 
         // Initialize matched items for each variant
         const initialMatched = {};
@@ -103,6 +106,7 @@ function Matching() {
             return formattedItem;
           });
           setQuizItems(formattedItems);
+          setOriginalItems(formattedItems); // Store original items for reset
 
           // Initialize matched items for each variant
           const initialMatched = {};
@@ -121,7 +125,7 @@ function Matching() {
     };
 
     initializeQuiz();
-  }, [quizId, stateQuizId, message]); // Removed variants, items, quizTitle from dependencies
+  }, [quizId, stateQuizId, message, quizTitle, variants.length, items.length]); // Fixed dependencies
 
   // Redirect if no quiz ID
   if (!quizId) {
@@ -165,6 +169,12 @@ function Matching() {
     e.preventDefault();
     if (!draggedItem) return;
 
+    // Clear any existing validation when moving items
+    if (showValidation) {
+      setShowValidation(false);
+      setValidationResults({});
+    }
+
     // Remove from original location
     if (draggedItem.category === 'unmatched') {
       setQuizItems(prev => prev.filter(item => item.id !== draggedItem.id));
@@ -176,11 +186,11 @@ function Matching() {
       }));
     }
 
-    // Add to target variant
+    // Add to target variant with updated category
     const updatedItem = { ...draggedItem, category: targetVariantId };
     setMatchedItems(prev => ({
       ...prev,
-      [targetVariantId]: [...prev[targetVariantId], updatedItem]
+      [targetVariantId]: [...(prev[targetVariantId] || []), updatedItem]
     }));
 
     setDraggedItem(null);
@@ -190,7 +200,13 @@ function Matching() {
     e.preventDefault();
     if (!draggedItem) return;
 
-    // Remove from variant
+    // Clear any existing validation when moving items
+    if (showValidation) {
+      setShowValidation(false);
+      setValidationResults({});
+    }
+
+    // Remove from variant if it was in one
     if (draggedItem.category !== 'unmatched') {
       setMatchedItems(prev => ({
         ...prev,
@@ -198,23 +214,24 @@ function Matching() {
       }));
     }
 
-    // Add back to items
+    // Add back to items with reset category
     const resetItem = { ...draggedItem, category: 'unmatched' };
-    setQuizItems(prev => [...prev, resetItem]);
+    setQuizItems(prev => {
+      // Check if item already exists to prevent duplicates
+      const exists = prev.some(item => item.id === resetItem.id);
+      return exists ? prev : [...prev, resetItem];
+    });
 
     setDraggedItem(null);
   };
 
   const resetQuiz = () => {
-    // Reset all items back to unmatched
-    const resetItems = [];
-    Object.values(matchedItems).forEach(variantItems => {
-      variantItems.forEach(item => {
-        resetItems.push({ ...item, category: 'unmatched' });
-      });
-    });
+    // Clear validation
+    setShowValidation(false);
+    setValidationResults({});
     
-    setQuizItems([...quizItems, ...resetItems]);
+    // Reset to original state
+    setQuizItems([...originalItems]);
     setMatchedItems(
       currentQuiz.variants.reduce((acc, variant) => {
         acc[variant.id] = [];
@@ -223,29 +240,22 @@ function Matching() {
     );
   };
 
-  const checkProgress = () => {
-    const totalItems = quizItems.length + Object.values(matchedItems).reduce((sum, items) => sum + items.length, 0);
-    const matchedCount = Object.values(matchedItems).reduce((sum, items) => sum + items.length, 0);
-    
-    if (matchedCount === totalItems) {
-      alert('Perfect! All items have been matched!');
-    } else {
-      alert(`Progress: ${matchedCount}/${totalItems} items matched`);
-    }
-  };
+
 
   const validateMatches = () => {
     const results = {};
     let correctCount = 0;
     let totalMatched = 0;
+    const totalItems = originalItems.length;
+    const unmatched = quizItems.length;
 
     // Check each variant's matched items
     Object.keys(matchedItems).forEach(variantId => {
-      const itemsInVariant = matchedItems[variantId];
+      const itemsInVariant = matchedItems[variantId] || [];
       const variantResults = [];
 
       itemsInVariant.forEach(item => {
-        const isCorrect = item.correctVariantId == variantId; // Use == for type coercion
+        const isCorrect = String(item.correctVariantId) === String(variantId);
         variantResults.push({
           itemId: item.id,
           itemName: item.name,
@@ -262,19 +272,29 @@ function Matching() {
     setValidationResults(results);
     setShowValidation(true);
 
-    // Show validation summary in modal
+    // Simple and clean validation messaging
     if (totalMatched === 0) {
-      setModalMessage("No items have been matched yet. Please drag items to their correct categories.");
-      setModalGif("https://media.tenor.com/5t-iIxnzE8MAAAAM/sad-bear-cry.gif"); // neutral gif
-    } else {
-      const percentage = Math.round((correctCount / totalMatched) * 100);
-      setModalMessage(
-        `Validation Results:\n${correctCount}/${totalMatched} items correctly matched (${percentage}%)`
-      );
-      if (percentage < 50) {
-        setModalGif("https://i.pinimg.com/originals/26/23/fa/2623fa72b1bc00b166e1aa3b1b6856cf.gif"); // fail gif
+      setModalMessage("No items matched yet.\nStart by dragging items to their categories!");
+      setModalGif("https://media.tenor.com/5t-iIxnzE8MAAAAM/sad-bear-cry.gif");
+    } else if (unmatched > 0) {
+      // Show progress based on total items, not just matched ones
+      const overallProgress = Math.round((correctCount / totalItems) * 100);
+      setModalMessage(`Progress: ${correctCount}/${totalItems} correct (${overallProgress}%)\nMatch all ${totalItems} items to complete!`);
+      if (overallProgress >= 50) {
+        setModalGif("https://media.tenor.com/3ijOTr8lz7oAAAAC/good-job-amazing.gif");
       } else {
-        setModalGif("https://i.pinimg.com/originals/26/23/fa/2623fa72b1bc00b166e1aa3b1b6856cf.gif"); // success gif
+        setModalGif("https://media.tenor.com/5t-iIxnzE8MAAAAM/sad-bear-cry.gif");
+      }
+    } else {
+      // All items are matched - final results
+      const percentage = Math.round((correctCount / totalItems) * 100);
+      setModalMessage(`🎉 Quiz Complete!\nFinal Score: ${correctCount}/${totalItems} (${percentage}%)`);
+      if (percentage === 100) {
+        setModalGif("https://media.giphy.com/media/26u4cqiYI30juCOGY/giphy.gif");
+      } else if (percentage >= 70) {
+        setModalGif("https://media.giphy.com/media/3oz8xAFtqoOUUrsh7W/giphy.gif");
+      } else {
+        setModalGif("https://media.giphy.com/media/26ybwvTX4DTkwst6U/giphy.gif");
       }
     }
     setShowModal(true);
@@ -415,7 +435,6 @@ function Matching() {
         </div>
       )}
 
-
         {/* Action Buttons */}
         <div className="action-buttons">
           <button onClick={goBack} className="action-button back-button">
@@ -425,10 +444,6 @@ function Matching() {
           <button onClick={resetQuiz} className="action-button reset-button">
             <span className="button-icon">🔄</span>
             Reset Quiz
-          </button>
-          <button onClick={checkProgress} className="action-button check-button">
-            <span className="button-icon">📊</span>
-            Check Progress
           </button>
           <button onClick={validateMatches} className="action-button validate-button">
             <span className="button-icon">✅</span>
