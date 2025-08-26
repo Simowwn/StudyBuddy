@@ -1,12 +1,12 @@
 .quiz-container {
   max-width: 800px;
   margin: 0 auto;
-  padding: 60px 40px;
+  padding: 40px 40px; /* reduced from 60 to shorten gap under navbar */
   text-align: center;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start; /* was center */
 
 }
 

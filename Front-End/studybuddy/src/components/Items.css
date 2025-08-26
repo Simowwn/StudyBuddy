@@ -1,12 +1,12 @@
 .items-form {
   max-width: 800px;
   margin: 0 auto;
-  padding: 60px 10px;
+  padding: 40px 10px; /* reduced top padding to close gap under navbar */
   text-align: center;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start; /* was center; align content below navbar */
   border: none;
   outline: none;
 }
@@ -66,6 +66,14 @@
 }
 
 .items-form {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  border: none;
+  outline: none;
+}
+
+.items-content {
   width: 100%;
   max-width: 600px;
   margin: 0 auto;

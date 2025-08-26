@@ -357,7 +357,7 @@
 }
 
 .view-quiz-btn,
-.delete-quiz-btn {
+.edit-quiz-btn {
   flex: 1;
   padding: 10px 16px;
   border-radius: 8px;
@@ -378,16 +378,16 @@
   box-shadow: 0 4px 15px rgba(55, 80, 235, 0.3);
 }
 
-.delete-quiz-btn {
+.edit-quiz-btn {
   background: #f1f5f9;
   color: #64748b;
   border: 1px solid #e2e8f0;
 }
 
-.delete-quiz-btn:hover {
-  background: #fee2e2;
-  color: #dc2626;
-  border-color: #fecaca;
+.edit-quiz-btn:hover {
+  background: #ecce20;
+  color: #92853b;
+  border-color: #ecce20;
 }
 
 .features-preview {

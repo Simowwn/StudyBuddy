@@ -10,6 +10,7 @@ import Quiz from './components/Quiz';
 import Variants from './components/Variants';
 import Items from './components/Items';
 import Matching from './components/Matching';
+import Edit from './components/Edit';
 
 function App() {
   return (
@@ -64,6 +65,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Matching />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/quiz/edit/:quizId" 
+              element={
+                <ProtectedRoute>
+                  <Edit />
                 </ProtectedRoute>
               } 
             />

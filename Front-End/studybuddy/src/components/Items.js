@@ -119,7 +119,7 @@ function Items() {
         <p>Create the actual questions and answers for your quiz</p>
       </div>
       
-      <div className="items-form">
+      <div className="items-content">
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>Quiz Title</label>
@@ -163,7 +163,7 @@ function Items() {
           {error && <div className="error-message">{error}</div>}
           
           <div className="form-actions">
-
+            
             
             <button 
               type="submit" 
