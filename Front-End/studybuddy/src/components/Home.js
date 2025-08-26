@@ -64,16 +64,16 @@ function Home() {
     }
   };
 
-  const handleDeleteQuiz = async (quizId, quizTitle) => {
-    if (window.confirm(`Are you sure you want to delete "${quizTitle}"?`)) {
-      try {
-        await quizService.deleteQuiz(quizId);
-        setSuccessMessage(`Quiz "${quizTitle}" deleted successfully!`);
-        loadQuizzes(); // Reload the list
-      } catch (error) {
-        console.error('Error deleting quiz:', error);
-        setError('Failed to delete quiz. Please try again.');
-      }
+  const handleEditQuiz = async (quizId, quizTitle) => {
+    try {
+      setLoading(true);
+      // Navigate to edit page with quiz ID
+      navigate(`/quiz/edit/${quizId}`);
+    } catch (error) {
+      console.error('Error navigating to edit quiz:', error);
+      setError('Failed to open quiz for editing. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -168,10 +168,10 @@ function Home() {
                       View Quiz
                     </button>
                     <button 
-                      onClick={() => handleDeleteQuiz(quiz.id, quiz.title)}
-                      className="delete-quiz-btn"
+                      onClick={() => handleEditQuiz(quiz.id, quiz.title)}
+                      className="edit-quiz-btn"
                     >
-                      Delete
+                      Edit
                     </button>
                   </div>
                 </div>

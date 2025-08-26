@@ -36,7 +36,7 @@ function Matching() {
   // modal states
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
-  const [modalGif, setModalGif] = useState("");
+  const [modalPercentage, setModalPercentage] = useState(0);
 
   // Initialize quiz data - either from state or fetch from API
   useEffect(() => {
@@ -240,7 +240,52 @@ function Matching() {
     );
   };
 
+  const getProgressColor = (percentage) => {
+    if (percentage >= 80) return '#22c55e'; // Green
+    if (percentage >= 60) return '#eab308'; // Yellow
+    if (percentage >= 30) return '#f97316'; // Orange
+    return '#ef4444'; // Red
+  };
 
+  const CircularProgress = ({ percentage }) => {
+    const radius = 70; 
+    const circumference = 2 * Math.PI * radius;
+    const strokeDashoffset = circumference - (percentage / 100) * circumference;
+    const color = getProgressColor(percentage);
+
+    return (
+      <div className="circular-progress">
+        <svg width="180" height="180" className="progress-ring">
+          <circle
+            className="progress-ring-background"
+            stroke="#e5e7eb"
+            strokeWidth="8"
+            fill="transparent"
+            r="70"
+            cx="90"
+            cy="90"
+          />
+          <circle
+            className="progress-ring-progress"
+            stroke={color}
+            strokeWidth="8"
+            fill="transparent"
+            r="70"
+            cx="90"
+            cy="90"
+            style={{
+              strokeDasharray: circumference,
+              strokeDashoffset: strokeDashoffset,
+              transition: 'stroke-dashoffset 0.5s ease-in-out, stroke 0.3s ease'
+            }}
+          />
+        </svg>
+        <div className="progress-percentage" style={{ color }}>
+          {percentage}%
+        </div>
+      </div>
+    );
+  };
 
   const validateMatches = () => {
     const results = {};
@@ -272,30 +317,19 @@ function Matching() {
     setValidationResults(results);
     setShowValidation(true);
 
+    // Calculate percentage
+    const percentage = totalItems > 0 ? Math.round((correctCount / totalItems) * 100) : 0;
+    setModalPercentage(percentage);
+
     // Simple and clean validation messaging
     if (totalMatched === 0) {
       setModalMessage("No items matched yet.\nStart by dragging items to their categories!");
-      setModalGif("https://media.tenor.com/5t-iIxnzE8MAAAAM/sad-bear-cry.gif");
     } else if (unmatched > 0) {
       // Show progress based on total items, not just matched ones
-      const overallProgress = Math.round((correctCount / totalItems) * 100);
-      setModalMessage(`Progress: ${correctCount}/${totalItems} correct (${overallProgress}%)\nMatch all ${totalItems} items to complete!`);
-      if (overallProgress >= 50) {
-        setModalGif("https://media.tenor.com/3ijOTr8lz7oAAAAC/good-job-amazing.gif");
-      } else {
-        setModalGif("https://media.tenor.com/5t-iIxnzE8MAAAAM/sad-bear-cry.gif");
-      }
+      setModalMessage(`Progress: ${correctCount}/${totalItems} correct\nMatch all ${totalItems} items to complete!`);
     } else {
       // All items are matched - final results
-      const percentage = Math.round((correctCount / totalItems) * 100);
-      setModalMessage(`🎉 Quiz Complete!\nFinal Score: ${correctCount}/${totalItems} (${percentage}%)`);
-      if (percentage === 100) {
-        setModalGif("https://media.giphy.com/media/26u4cqiYI30juCOGY/giphy.gif");
-      } else if (percentage >= 70) {
-        setModalGif("https://media.giphy.com/media/3oz8xAFtqoOUUrsh7W/giphy.gif");
-      } else {
-        setModalGif("https://media.giphy.com/media/26ybwvTX4DTkwst6U/giphy.gif");
-      }
+      setModalMessage(`🎉 Quiz Complete!\nFinal Score: ${correctCount}/${totalItems}`);
     }
     setShowModal(true);
   };
@@ -424,42 +458,71 @@ function Matching() {
 
         {/* Modal */}
         {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <img src={modalGif} alt="Validation GIF" className="modal-gif" />
-            <pre className="modal-message">{modalMessage}</pre>
-            <button onClick={() => setShowModal(false)} className="modal-close">
-              Close
-            </button>
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <CircularProgress percentage={modalPercentage} />
+              <pre className="modal-message">{modalMessage}</pre>
+              <button onClick={() => setShowModal(false)} className="modal-close">
+                Close
+              </button>
+              
+              {/* Confetti - positioned to cover the entire modal */}
+              {modalPercentage >= 50 && (
+                <div className="confetti">
+                  <div className="confetti-piece"></div>
+                  <div className="confetti-piece"></div>
+                  <div className="confetti-piece"></div>
+                  <div className="confetti-piece"></div>
+                  <div className="confetti-piece"></div>
+                  <div className="confetti-piece"></div>
+                  <div className="confetti-piece"></div>
+                  <div className="confetti-piece"></div>
+                  <div className="confetti-piece"></div>
+                  <div className="confetti-piece"></div>
+                  <div className="confetti-piece"></div>
+                  <div className="confetti-piece"></div>
+                  <div className="confetti-piece"></div>
+                  <div className="confetti-piece"></div>
+                  <div className="confetti-piece"></div>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
         {/* Action Buttons */}
-        <div className="action-buttons">
-          <button onClick={goBack} className="action-button back-button">
-            <span className="button-icon">←</span>
-            Back to Items
-          </button>
-          <button onClick={resetQuiz} className="action-button reset-button">
-            <span className="button-icon">🔄</span>
-            Reset Quiz
-          </button>
-          <button onClick={validateMatches} className="action-button validate-button">
-            <span className="button-icon">✅</span>
-            Validate Matches
-          </button>
-          {showValidation && (
-            <button onClick={clearValidation} className="action-button clear-validation-button">
-              <span className="button-icon">👁️</span>
-              Hide Results
-            </button>
-          )}
-          <button onClick={goHome} className="action-button home-button">
-            <span className="button-icon">🏠</span>
-            Home
-          </button>
-        </div>
+<div>
+
+  <div className="action-buttons">
+    <button onClick={validateMatches} className="action-button validate-button" style={{ width: "100%" }}>
+      <span className="button-icon">✅</span>
+      Validate Matches
+    </button>
+  </div>
+
+
+  <div className="action-buttons">
+    <button onClick={goBack} className="action-button back-button">
+      <span className="button-icon">←</span>
+      Back to Items
+    </button>
+    <button onClick={resetQuiz} className="action-button reset-button">
+      <span className="button-icon">🔄</span>
+      Reset Quiz
+    </button>
+    {showValidation && (
+      <button onClick={clearValidation} className="action-button clear-validation-button">
+        <span className="button-icon">👁️</span>
+        Hide Results
+      </button>
+    )}
+    <button onClick={goHome} className="action-button home-button">
+      <span className="button-icon">🏠</span>
+      Home
+    </button>
+  </div>
+</div>
+
       </div>
     </div>
   );
