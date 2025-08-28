@@ -112,23 +112,11 @@ function Register() {
       
       <div className="auth-right">
         <div className="auth-welcome">
-          <h1>Study Buddy</h1>
+          <h1>Mindly.</h1>
           <p>Your personal learning companion</p>
-          <div className="auth-features">
-            <div className="feature-item">
-              <span className="feature-icon">📚</span>
-              <span>Create Custom Quizzes</span>
-            </div>
-            <div className="feature-item">
-              <span className="feature-icon">🎯</span>
-              <span>Track Your Progress</span>
-            </div>
-            <div className="feature-item">
-              <span className="feature-icon">🚀</span>
-              <span>Study Smarter</span>
-            </div>
-          </div>
+
         </div>
+        <img className="auth-hero-image" src="/mindlyAuth.png" alt="Mindly illustration" />
       </div>
     </div>
   );

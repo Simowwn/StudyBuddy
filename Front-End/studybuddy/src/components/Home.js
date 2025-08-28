@@ -82,7 +82,7 @@ function Home() {
       <header className="home-header">
         <div className="header-content">
           <div className="logo-section">
-            <h1>STUDYBUD</h1>
+            <h1>Mindly.</h1>
           </div>
           <button onClick={handleLogout} className="logout-button">
             Logout
