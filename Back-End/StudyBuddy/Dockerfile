@@ -22,5 +22,6 @@ RUN pip install --upgrade pip && pip install --no-cache-dir --root-user-action=i
 COPY . /app/
 
 # Run Django app
-CMD ["sh", "-c", "python manage.py runserver 0.0.0.0:${PORT}"]
+CMD ["sh", "-c", "python manage.py runserver 0.0.0.0:${PORT:-8000}"]
+
 
