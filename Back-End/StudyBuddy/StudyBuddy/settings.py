@@ -26,7 +26,7 @@ load_dotenv(os.path.join(BASE_DIR.parent, '.env'))
 SECRET_KEY = 'django-insecure-=a2+0*f8weu9vkbk97v2e3x1%jas+4bvs+y+4-pwhtph_a4ina'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
 # ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 ALLOWED_HOSTS = ["mindly-backend-yp3r.onrender.com", "localhost", "127.0.0.1"]
@@ -36,6 +36,7 @@ ALLOWED_HOSTS = ["mindly-backend-yp3r.onrender.com", "localhost", "127.0.0.1"]
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://mindly-simowwn.vercel.app",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -61,6 +62,46 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
+# Additional CORS settings for production
+CORS_ALLOW_ALL_ORIGINS = False  # Keep this False for security
+CORS_EXPOSE_HEADERS = ['content-type', 'x-csrftoken']
+
+# Additional CORS settings for better compatibility
+CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
+CORS_REPLACE_HTTPS_REFERER = True
+
+# Handle preflight requests properly
+CORS_URLS_REGEX = r'^api/.*$'
+
+# Additional settings for production CORS handling
+CORS_ALLOW_PRIVATE_NETWORK = True
+
+# Ensure proper handling of preflight requests
+CORS_ORIGIN_ALLOW_ALL = False  # Explicitly set to False for security
+
+# Additional production CORS settings
+if not DEBUG:
+    # In production, ensure CORS is properly configured
+    CORS_ALLOWED_ORIGINS = [
+        "https://mindly-simowwn.vercel.app",
+    ]
+    # Add any additional production origins here if needed
+
+# Additional CORS headers that might be needed
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'access-control-request-method',
+    'access-control-request-headers',
+]
+
 
 # Application definition
 
@@ -79,7 +120,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Must be at the top
+    'StudyBuddy.middleware.CustomCORSMiddleware',  # Custom CORS handling
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

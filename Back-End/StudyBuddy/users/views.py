@@ -5,6 +5,9 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from .serializers import LoginSerializer, UsersSerializer, RegisterSerializer
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Create your views here.
 class UserViewSet(viewsets.ModelViewSet):
@@ -16,11 +19,19 @@ class RegisterView(APIView):
     serializer_class = RegisterSerializer
 
     def post(self, request):
+        logger.info(f"Register request received: {request.method} from {request.META.get('HTTP_ORIGIN', 'Unknown')}")
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
             return Response(UsersSerializer(user).data, status=status.HTTP_201_CREATED)
+        logger.error(f"Registration failed: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def options(self, request, *args, **kwargs):
+        """Handle OPTIONS requests for CORS preflight"""
+        response = Response()
+        response["Allow"] = "POST, OPTIONS"
+        return response
 
 
 class LoginView(APIView):
@@ -31,6 +42,12 @@ class LoginView(APIView):
         serializer.is_valid(raise_exception=True)
  
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
+
+    def options(self, request, *args, **kwargs):
+        """Handle OPTIONS requests for CORS preflight"""
+        response = Response()
+        response["Allow"] = "POST, OPTIONS"
+        return response
 
 
 

@@ -17,9 +17,26 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+
+@csrf_exempt
+@require_http_methods(["GET", "OPTIONS"])
+def health_check(request):
+    """Simple health check endpoint to test CORS"""
+    if request.method == "OPTIONS":
+        response = JsonResponse({})
+        response["Access-Control-Allow-Origin"] = "https://mindly-simowwn.vercel.app"
+        response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+        return response
+    
+    return JsonResponse({"status": "healthy", "message": "CORS is working"})
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/health/', health_check, name='health_check'),
     path('api/users/', include('users.urls')),
     path('api/quizzes/', include('quizzes.urls')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
