@@ -17,7 +17,7 @@ function Matching() {
 
   const [quizItems, setQuizItems] = useState([]);
   const [matchedItems, setMatchedItems] = useState({});
-  const [selectedItem, setSelectedItem] = useState(null); // NEW: State for the selected item
+  const [selectedItem, setSelectedItem] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -134,21 +134,26 @@ function Matching() {
     );
   }
 
-  // NEW: Handle click on an item
-  const handleItemClick = (item) => {
-    // If this item is already in a variant, move it back to the items list
-    if (item.category !== undefined) {
-      handleMoveItemBack(item.id, item.category);
-    } else {
-      setSelectedItem(item);
+  // --- REVISED LOGIC ---
+
+  const handleItemClick = (item, currentCategory = null) => {
+    // If an item is already selected and the user clicks on it again, deselect it.
+    if (selectedItem?.id === item.id) {
+        setSelectedItem(null);
+    } 
+    // If the user clicks on a new item, regardless of its location, select it.
+    else {
+        setSelectedItem({ ...item, category: currentCategory });
     }
   };
 
-  // NEW: Handle click on a drop zone (variant)
   const handleDropZoneClick = (targetVariantId) => {
+    // A drop zone was clicked, but no item is currently selected.
     if (!selectedItem) {
-      return; // Do nothing if no item is selected
+      return; 
     }
+    
+    // An item is selected. Move it to the target variant.
     
     // Clear any existing validation when moving items
     if (showValidation) {
@@ -156,7 +161,7 @@ function Matching() {
       setValidationResults({});
     }
 
-    // Remove the item from its original location
+    // Step 1: Remove the item from its current location
     setQuizItems(prev => prev.filter(item => item.id !== selectedItem.id));
     setMatchedItems(prev => {
         const newState = { ...prev };
@@ -166,46 +171,23 @@ function Matching() {
         return newState;
     });
 
-    // Add to the target variant with updated category
+    // Step 2: Add the item to the new location (either a variant or the unmatched list)
     const updatedItem = { ...selectedItem, category: targetVariantId };
-    setMatchedItems(prev => ({
-      ...prev,
-      [targetVariantId]: [...(prev[targetVariantId] || []), updatedItem]
-    }));
+    
+    if (targetVariantId === 'unmatched') {
+      setQuizItems(prev => [...prev, updatedItem]);
+    } else {
+      setMatchedItems(prev => ({
+        ...prev,
+        [targetVariantId]: [...(prev[targetVariantId] || []), updatedItem]
+      }));
+    }
 
-    // Clear the selected item state
+    // Step 3: Clear the selected item state after the drop
     setSelectedItem(null);
   };
   
-  // NEW: Handle item that is already in a variant and clicked on
-  const handleMoveItemBack = (itemId, currentCategory) => {
-      // Clear any existing validation when moving items
-      if (showValidation) {
-        setShowValidation(false);
-        setValidationResults({});
-      }
-
-      // Find the item to move
-      let itemToMove;
-      setMatchedItems(prev => {
-          const newState = { ...prev };
-          newState[currentCategory] = newState[currentCategory].filter(item => {
-              if (item.id === itemId) {
-                  itemToMove = { ...item };
-                  return false;
-              }
-              return true;
-          });
-          return newState;
-      });
-
-      if (itemToMove) {
-          // Add back to items with reset category
-          const resetItem = { ...itemToMove, category: undefined };
-          setQuizItems(prev => [...prev, resetItem]);
-          setSelectedItem(null);
-      }
-  };
+  // --- END OF REVISED LOGIC ---
 
   const resetQuiz = () => {
     setShowValidation(false);
@@ -217,7 +199,7 @@ function Matching() {
         return acc;
       }, {})
     );
-    setSelectedItem(null); // Clear selected item on reset
+    setSelectedItem(null);
   };
 
   const getProgressColor = (percentage) => {
@@ -350,12 +332,12 @@ function Matching() {
 
       <div className="matching-content">
         {/* Items to Match */}
-        <div className="items-section" onClick={() => handleDropZoneClick('unmatched')}>
+        <div className="items-section">
           <div className="section-header">
             <h2>Items to Match</h2>
             <div className="count-badge">{quizItems.length}</div>
           </div>
-          <div className="items-container">
+          <div className="items-container" onClick={() => handleDropZoneClick('unmatched')}>
             {quizItems.length === 0 ? (
               <span className="drop-placeholder">All items are matched!</span>
             ) : (
@@ -406,10 +388,10 @@ function Matching() {
                               ? 'correct-match' 
                               : 'incorrect-match'
                             : ''
-                        }`}
+                        } ${selectedItem?.id === item.id ? 'selected' : ''}`}
                         onClick={(e) => {
                            e.stopPropagation();
-                           handleItemClick({ ...item, category: variant.id });
+                           handleItemClick(item, variant.id);
                         }}
                       >
                         {item.name}
