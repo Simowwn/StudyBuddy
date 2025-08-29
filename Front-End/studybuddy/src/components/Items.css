@@ -261,7 +261,9 @@
   margin-bottom: 1rem;
 }
 
-
+.continue-button {
+  background-color: #c3e6cb;
+}
 
 @media (max-width: 768px) {
   .items-container {

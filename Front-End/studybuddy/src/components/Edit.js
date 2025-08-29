@@ -222,7 +222,7 @@ function Edit() {
 
             <button
               type="button"
-              className="items-button continue-button"
+              className=" continue-button"
               onClick={onContinueToMatching}
               disabled={loading || saving}
             >
