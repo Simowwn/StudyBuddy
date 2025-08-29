@@ -21,5 +21,6 @@ RUN pip install --upgrade pip && pip install --no-cache-dir --root-user-action=i
 COPY . /app/
 
 # Run Django app with Gunicorn
-CMD ["gunicorn", "StudyBuddy.wsgi:application", "--bind", "0.0.0.0:${PORT:-8000}"]
+# CMD ["gunicorn", "StudyBuddy.wsgi:application", "--bind", "0.0.0.0:${PORT:-8000}"]
+CMD ["gunicorn", "StudyBuddy.wsgi:application", "--bind", "0.0.0.0:8000"]
 
