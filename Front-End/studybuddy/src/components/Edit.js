@@ -42,19 +42,7 @@ function Edit() {
           setSelectedVariant(first.name);
 
           // Load items for first variant
-          const variantItems = await quizService.getItemsByVariant(first.id);
-          const names = (variantItems || []).map(it => it.name);
-          
-          // Handle the case where items might be stored as comma-separated string
-          let itemsList = [];
-          if (names.length === 1 && names[0].includes(',')) {
-            // If there's only one item but it contains commas, split it
-            itemsList = names[0].split(',').map(s => s.trim()).filter(Boolean);
-          } else {
-            itemsList = names;
-          }
-          
-          setItemsText(itemsList.join(', '));
+          await loadVariantItems(first.id);
         }
       } catch (e) {
         console.error('Failed to load quiz for edit:', e);
@@ -67,25 +55,20 @@ function Edit() {
     loadQuiz();
   }, [quizId]);
 
-  const onChangeVariant = async (e) => {
-    const value = e.target.value;
-    setSelectedVariant(value);
-    setError('');
-    setSuccessMessage('');
-
-    // Clear items text immediately when changing variants
-    setItemsText('');
-
-    const v = variants.find(vr => vr.name === value);
-    if (!v) {
-      setItemsText(''); // Clear if no variant selected
-      return;
-    }
-
+  // Helper function to load items for a specific variant
+  const loadVariantItems = async (variantId) => {
     try {
-      setLoading(true);
-      const variantItems = await quizService.getItemsByVariant(v.id);
-      const names = (variantItems || []).map(it => it.name);
+      const variantItems = await quizService.getItemsByVariant(variantId);
+      
+      // Clear items first
+      setItemsText('');
+      
+      if (!variantItems || variantItems.length === 0) {
+        setItemsText('');
+        return;
+      }
+
+      const names = variantItems.map(it => it.name);
       
       // Handle the case where items might be stored as comma-separated string
       let itemsList = [];
@@ -100,7 +83,32 @@ function Edit() {
     } catch (e) {
       console.error('Failed to load items:', e);
       setError('Failed to load items for selected variant.');
-      setItemsText(''); // Clear on error
+      setItemsText('');
+    }
+  };
+
+  const onChangeVariant = async (e) => {
+    const value = e.target.value;
+    setSelectedVariant(value);
+    setError('');
+    setSuccessMessage('');
+
+    // Clear items text immediately when changing variants
+    setItemsText('');
+
+    if (!value) {
+      return; // No variant selected
+    }
+
+    const v = variants.find(vr => vr.name === value);
+    if (!v) {
+      setItemsText('');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await loadVariantItems(v.id);
     } finally {
       setLoading(false);
     }
@@ -246,6 +254,5 @@ function Edit() {
     </div>
   );
 }
-
 
 export default Edit;
