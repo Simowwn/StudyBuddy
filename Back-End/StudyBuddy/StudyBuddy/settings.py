@@ -28,7 +28,9 @@ SECRET_KEY = 'django-insecure-=a2+0*f8weu9vkbk97v2e3x1%jas+4bvs+y+4-pwhtph_a4ina
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+# ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ["mindly-backend-yp3r.onrender.com", "localhost", "127.0.0.1"]
+
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
