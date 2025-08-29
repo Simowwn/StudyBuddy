@@ -42,7 +42,9 @@ function Edit() {
           setSelectedVariant(first.name);
 
           // Load items for first variant
-          await loadVariantItems(first.id);
+          const variantItems = await quizService.getItemsByVariant(first.id);
+          const names = (variantItems || []).map(it => it.name);
+          setItemsText(names.join(', '));
         }
       } catch (e) {
         console.error('Failed to load quiz for edit:', e);
@@ -55,55 +57,23 @@ function Edit() {
     loadQuiz();
   }, [quizId]);
 
-  // Helper function to load items for a specific variant
-  const loadVariantItems = async (variantId) => {
-    try {
-      setLoading(true);
-      const variantItems = await quizService.getItemsByVariant(variantId);
-
-      if (!variantItems || variantItems.length === 0) {
-        setItemsText('');
-        return;
-      }
-
-      // Flatten comma-separated names into individual items
-      const itemsList = variantItems
-        .flatMap(it => it.name.split(',').map(s => s.trim()))
-        .filter(Boolean);
-
-      setItemsText(itemsList.join(', '));
-    } catch (e) {
-      console.error('Failed to load items:', e);
-      setError('Failed to load items for selected variant.');
-      setItemsText('');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-
   const onChangeVariant = async (e) => {
     const value = e.target.value;
     setSelectedVariant(value);
     setError('');
     setSuccessMessage('');
 
-    // Clear items text immediately when changing variants
-    setItemsText('');
-
-    if (!value) {
-      return; // No variant selected
-    }
-
     const v = variants.find(vr => vr.name === value);
-    if (!v) {
-      setItemsText('');
-      return;
-    }
+    if (!v) return;
 
     try {
       setLoading(true);
-      await loadVariantItems(v.id);
+      const variantItems = await quizService.getItemsByVariant(v.id);
+      const names = (variantItems || []).map(it => it.name);
+      setItemsText(names.join(', '));
+    } catch (e) {
+      console.error('Failed to load items:', e);
+      setError('Failed to load items for selected variant.');
     } finally {
       setLoading(false);
     }
@@ -200,7 +170,6 @@ function Edit() {
                 <option key={variant.id} value={variant.name}>{variant.name}</option>
               ))}
             </select>
-            {loading && <p className="loading-text">Loading items...</p>}
           </div>
 
           <div className="form-group">
@@ -213,7 +182,7 @@ function Edit() {
                 setError(''); 
                 setSuccessMessage('');
               }}
-              placeholder={loading ? "Loading items..." : "Enter your quiz items separated by commas (e.g., Question 1, Question 2, ...)"}
+              placeholder="Enter your quiz items separated by commas (e.g., Question 1, Question 2, ...)"
               rows="6"
               required
               disabled={loading || saving}
