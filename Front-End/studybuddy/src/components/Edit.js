@@ -205,7 +205,7 @@ function Edit() {
             <p className="form-hint">
               Enter each quiz item separated by commas.
             </p>
-                    <h1 style={{ color: 'green' }}>ITEM IS PUSHED</h1>        <h1 style={{ color: 'green' }}>ITEM IS PUSHED</h1>        <h1 style={{ color: 'green' }}>ITEM IS PUSHED</h1>        <h1 style={{ color: 'green' }}>ITEM IS PUSHED</h1>
+              
           </div>
 
           {error && <div className="error-message">{error}</div>}
