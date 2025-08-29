@@ -221,9 +221,7 @@
 
 .items-button {
   background: linear-gradient(135deg, #3750EB, #4f67f2);
-  color: white;
   border: none;
-  border-style: solid;
   padding: 20px 40px;
   border-radius: 12px;
   font-size: 18px;
