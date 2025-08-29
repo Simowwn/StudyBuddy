@@ -81,9 +81,10 @@ CORS_ORIGIN_ALLOW_ALL = False  # Explicitly set to False for security
 
 # Additional production CORS settings
 if not DEBUG:
-    # In production, ensure CORS is properly configured
     CORS_ALLOWED_ORIGINS = [
         "https://mindly-simowwn.vercel.app",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
     ]
     # Add any additional production origins here if needed
 
