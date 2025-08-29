@@ -9,61 +9,74 @@ function Edit() {
 
   const [quizTitle, setQuizTitle] = useState('');
   const [variants, setVariants] = useState([]);
-  const [selectedVariantId, setSelectedVariantId] = useState('');
+  const [selectedVariant, setSelectedVariant] = useState('');
   const [itemsText, setItemsText] = useState('');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const [originalItems, setOriginalItems] = useState([]);
 
   useEffect(() => {
-    const loadQuizData = async () => {
+    const loadQuiz = async () => {
       setLoading(true);
       setError('');
       try {
+        // Fetch quiz core info
         const quiz = await quizService.getQuiz(quizId);
-        setQuizTitle(quiz.title || 'Untitled Quiz');
+        const title = quiz.title || 'Untitled Quiz';
+        setQuizTitle(title);
 
+        // Fetch variants for this quiz
         const vs = await quizService.getVariantsByQuiz(quizId);
-        setVariants(vs);
+        const filtered = (vs || []).filter(v => {
+          const matchesId =
+            String(v.quiz) === String(quizId) ||
+            String(v.quiz_id) === String(quizId) ||
+            String(v.quiz?.id) === String(quizId);
 
-        if (vs.length > 0) {
-          const firstVariant = vs[0];
-          setSelectedVariantId(firstVariant.id);
-          const variantItems = await quizService.getItemsByVariant(firstVariant.id);
-          const names = variantItems.map(item => item.name).join(', ');
-          setItemsText(names);
-          setOriginalItems(variantItems);
+          const matchesTitle =
+            (v.quiz_title && v.quiz_title === title) ||
+            (v.quiz?.title && v.quiz?.title === title);
+
+          return matchesId || matchesTitle;
+        });
+        setVariants(filtered);
+
+        // Auto-select first variant if present
+        if (filtered.length > 0) {
+          const first = filtered[0];
+          setSelectedVariant(first.name);
+
+          // Load items for first variant
+          const variantItems = await quizService.getItemsByVariant(first.id);
+          const names = (variantItems || []).map(it => it.name);
+          setItemsText(names.join('\n')); // newline separated
         }
       } catch (e) {
-        console.error('Failed to load quiz data:', e);
-        setError('Failed to load quiz data.');
+        console.error('Failed to load quiz for edit:', e);
+        setError('Failed to load quiz.');
       } finally {
         setLoading(false);
       }
     };
-    loadQuizData();
+
+    loadQuiz();
   }, [quizId]);
 
   const onChangeVariant = async (e) => {
-    const newVariantId = e.target.value;
-    setSelectedVariantId(newVariantId);
-    setItemsText(''); // <--- KEY CHANGE: Clear the textbox immediately
-    setOriginalItems([]); // and clear the original items state
+    const value = e.target.value;
+    setSelectedVariant(value);
     setError('');
     setSuccessMessage('');
 
-    if (!newVariantId) {
-      return;
-    }
+    const v = variants.find(vr => vr.name === value);
+    if (!v) return;
 
     try {
       setLoading(true);
-      const variantItems = await quizService.getItemsByVariant(newVariantId);
-      const names = variantItems.map(item => item.name).join(', ');
-      setItemsText(names);
-      setOriginalItems(variantItems);
+      const variantItems = await quizService.getItemsByVariant(v.id);
+      const names = (variantItems || []).map(it => it.name);
+      setItemsText(names.join('\n')); // newline separated
     } catch (e) {
       console.error('Failed to load items:', e);
       setError('Failed to load items for selected variant.');
@@ -77,39 +90,47 @@ function Edit() {
     setError('');
     setSuccessMessage('');
 
-    if (!selectedVariantId) {
-      setError('Please select a variant.');
+    if (!selectedVariant) {
+      setError('Please select a variant');
       return;
     }
 
-    const currentNames = itemsText.split(',').map(s => s.trim()).filter(Boolean);
-    const originalNames = originalItems.map(item => item.name);
+    if (!itemsText.trim()) {
+      setError('Please enter quiz items');
+      return;
+    }
 
-    const itemsToAdd = currentNames.filter(name => !originalNames.includes(name));
-    const itemsToDelete = originalItems.filter(item => !currentNames.includes(item.name));
-
-    if (itemsToAdd.length === 0 && itemsToDelete.length === 0) {
-      setSuccessMessage('No changes to save.');
+    const selectedVariantObj = variants.find(v => v.name === selectedVariant);
+    if (!selectedVariantObj) {
+      setError('Selected variant not found');
       return;
     }
 
     try {
       setSaving(true);
-      
-      await Promise.all([
-        ...itemsToDelete.map(item => quizService.deleteItem(item.id)),
-        ...itemsToAdd.map(name => quizService.createItem({ name, variant: selectedVariantId }))
-      ]);
 
-      const updatedItems = await quizService.getItemsByVariant(selectedVariantId);
-      setItemsText(updatedItems.map(item => item.name).join(', '));
-      setOriginalItems(updatedItems);
-      
-      const variantName = variants.find(v => v.id === selectedVariantId)?.name;
-      setSuccessMessage(`Items for variant "${variantName}" have been saved successfully!`);
+      // Delete existing items for this variant
+      const existing = await quizService.getItemsByVariant(selectedVariantObj.id);
+      for (const it of (existing || [])) {
+        try { await quizService.deleteItem(it.id); } catch (_) {}
+      }
+
+      // Split text by line (one item per line)
+      const names = itemsText.split('\n').map(s => s.trim()).filter(Boolean);
+      if (names.length === 0) {
+        setError('Please enter at least one valid item');
+        return;
+      }
+
+      // Save each item separately
+      for (const n of names) {
+        await quizService.createItem({ name: n, variant: selectedVariantObj.id });
+      }
+
+      setSuccessMessage(`Items for variant "${selectedVariant}" have been saved successfully!`);
     } catch (e) {
-      console.error('Failed to save items:', e);
-      setError('Failed to save items. Please try again.');
+      console.error('Failed to update items:', e);
+      setError('Failed to update items. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -149,14 +170,14 @@ function Edit() {
             <label htmlFor="variantSelect">Select Variant</label>
             <select
               id="variantSelect"
-              value={selectedVariantId}
+              value={selectedVariant}
               onChange={onChangeVariant}
               required
               disabled={loading || saving}
             >
               <option value="">Choose a variant...</option>
               {variants.map((variant) => (
-                <option key={variant.id} value={variant.id}>{variant.name}</option>
+                <option key={variant.id} value={variant.name}>{variant.name}</option>
               ))}
             </select>
           </div>
@@ -166,18 +187,18 @@ function Edit() {
             <textarea
               id="itemsInput"
               value={itemsText}
-              onChange={(e) => { 
-                setItemsText(e.target.value); 
-                setError(''); 
+              onChange={(e) => {
+                setItemsText(e.target.value);
+                setError('');
                 setSuccessMessage('');
               }}
-              placeholder="Enter your quiz items separated by commas (e.g., Question 1, Question 2, ...)"
+              placeholder="Enter one quiz item per line (e.g., Question 1 ↵ Question 2 ↵ Question 3)"
               rows="6"
               required
-              disabled={!selectedVariantId || loading || saving}
+              disabled={loading || saving}
             />
             <p className="form-hint">
-              Enter each quiz item separated by commas.
+              Enter each quiz item on a separate line.
             </p>
           </div>
 
@@ -188,11 +209,11 @@ function Edit() {
             <button
               type="submit"
               className="items-button save-button"
-              disabled={!selectedVariantId || loading || saving}
+              disabled={!selectedVariant || !itemsText.trim() || loading || saving}
             >
               {saving ? 'Saving...' : 'Save Items'}
             </button>
-            
+
             <button
               type="button"
               className="items-button continue-button"
