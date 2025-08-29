@@ -102,6 +102,13 @@ CORS_ALLOW_HEADERS = [
     'access-control-request-headers',
 ]
 
+# Additional settings for better CORS handling
+CORS_EXPOSE_HEADERS = ['content-type', 'x-csrftoken', 'authorization']
+CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
+
+# Ensure CORS is properly configured for all environments
+CORS_ALLOW_CREDENTIALS = True
+
 
 # Application definition
 
