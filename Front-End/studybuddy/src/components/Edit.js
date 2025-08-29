@@ -44,7 +44,17 @@ function Edit() {
           // Load items for first variant
           const variantItems = await quizService.getItemsByVariant(first.id);
           const names = (variantItems || []).map(it => it.name);
-          setItemsText(names.join(', '));
+          
+          // Handle the case where items might be stored as comma-separated string
+          let itemsList = [];
+          if (names.length === 1 && names[0].includes(',')) {
+            // If there's only one item but it contains commas, split it
+            itemsList = names[0].split(',').map(s => s.trim()).filter(Boolean);
+          } else {
+            itemsList = names;
+          }
+          
+          setItemsText(itemsList.join(', '));
         }
       } catch (e) {
         console.error('Failed to load quiz for edit:', e);
@@ -63,17 +73,34 @@ function Edit() {
     setError('');
     setSuccessMessage('');
 
+    // Clear items text immediately when changing variants
+    setItemsText('');
+
     const v = variants.find(vr => vr.name === value);
-    if (!v) return;
+    if (!v) {
+      setItemsText(''); // Clear if no variant selected
+      return;
+    }
 
     try {
       setLoading(true);
       const variantItems = await quizService.getItemsByVariant(v.id);
       const names = (variantItems || []).map(it => it.name);
-      setItemsText(names.join(', '));
+      
+      // Handle the case where items might be stored as comma-separated string
+      let itemsList = [];
+      if (names.length === 1 && names[0].includes(',')) {
+        // If there's only one item but it contains commas, split it
+        itemsList = names[0].split(',').map(s => s.trim()).filter(Boolean);
+      } else {
+        itemsList = names;
+      }
+      
+      setItemsText(itemsList.join(', '));
     } catch (e) {
       console.error('Failed to load items:', e);
       setError('Failed to load items for selected variant.');
+      setItemsText(''); // Clear on error
     } finally {
       setLoading(false);
     }
@@ -170,6 +197,7 @@ function Edit() {
                 <option key={variant.id} value={variant.name}>{variant.name}</option>
               ))}
             </select>
+            {loading && <p className="loading-text">Loading items...</p>}
           </div>
 
           <div className="form-group">
@@ -182,7 +210,7 @@ function Edit() {
                 setError(''); 
                 setSuccessMessage('');
               }}
-              placeholder="Enter your quiz items separated by commas (e.g., Question 1, Question 2, ...)"
+              placeholder={loading ? "Loading items..." : "Enter your quiz items separated by commas (e.g., Question 1, Question 2, ...)"}
               rows="6"
               required
               disabled={loading || saving}
