@@ -190,7 +190,7 @@ function Items() {
               ))}
             </select>
           </div>
-          <h1>Quiz Items</h1>
+     
 
           <div className="form-group">
             <label htmlFor="itemsInput">Quiz Items</label>
@@ -223,7 +223,7 @@ function Items() {
             
             <button
               type="button"
-              className="items-button continue-button"
+              className="continue-button"
               onClick={handleContinue}
               disabled={!selectedVariantId || saving || loading}
             >
