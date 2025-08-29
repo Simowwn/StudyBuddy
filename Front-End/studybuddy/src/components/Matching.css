@@ -39,6 +39,22 @@
   font-size: 18px;
   margin: 0;
 }
+
+.clickable-item{
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 12px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 2px solid #3b82f6;
+  width: auto;
+  text-align: center;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; */
+}
 .clickable-item.selected {
   border: 2px solid #3b82f6; /* A blue border to show selection */
   background-color: #dbeafe; /* Light blue background */
