@@ -17,11 +17,9 @@ RUN apt-get update \
 COPY requirements.txt /app/
 RUN pip install --upgrade pip && pip install --no-cache-dir --root-user-action=ignore -r requirements.txt
 
-
 # Copy project
 COPY . /app/
 
-# Run Django app
-CMD ["sh", "-c", "python manage.py runserver 0.0.0.0:${PORT:-8000}"]
-
+# Run Django app with Gunicorn
+CMD ["gunicorn", "StudyBuddy.wsgi:application", "--bind", "0.0.0.0:${PORT:-8000}"]
 
