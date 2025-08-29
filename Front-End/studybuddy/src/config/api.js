@@ -1,6 +1,12 @@
 // API Configuration
+const resolvedEnvBaseUrl = (process.env.REACT_APP_API_BASE_URL || '').trim();
+const isInvalidEnvBaseUrl =
+  !resolvedEnvBaseUrl ||
+  resolvedEnvBaseUrl.toLowerCase() === 'undefined' ||
+  resolvedEnvBaseUrl.toLowerCase() === 'null';
+
 const API_CONFIG = {
-  BASE_URL: process.env.REACT_APP_API_BASE_URL,
+  BASE_URL: isInvalidEnvBaseUrl ? 'https://mindly-backend-yp3r.onrender.com/api' : resolvedEnvBaseUrl,
   ENDPOINTS: {
     LOGIN: '/users/login/',
     REGISTER: '/users/register/',
