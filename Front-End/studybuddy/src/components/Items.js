@@ -172,7 +172,6 @@ function Items() {
             >
               {loading ? 'Creating Items...' : 'Next: Start Matching →'}
             </button>
-            <h1>ITEM PUSHED</h1>
           </div>
         </form>
       </div>
