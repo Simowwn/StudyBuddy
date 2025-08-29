@@ -58,34 +58,29 @@ function Edit() {
   // Helper function to load items for a specific variant
   const loadVariantItems = async (variantId) => {
     try {
+      setLoading(true);
       const variantItems = await quizService.getItemsByVariant(variantId);
-      
-      // Clear items first
-      setItemsText('');
-      
+
       if (!variantItems || variantItems.length === 0) {
         setItemsText('');
         return;
       }
 
-      const names = variantItems.map(it => it.name);
-      
-      // Handle the case where items might be stored as comma-separated string
-      let itemsList = [];
-      if (names.length === 1 && names[0].includes(',')) {
-        // If there's only one item but it contains commas, split it
-        itemsList = names[0].split(',').map(s => s.trim()).filter(Boolean);
-      } else {
-        itemsList = names;
-      }
-      
+      // Flatten comma-separated names into individual items
+      const itemsList = variantItems
+        .flatMap(it => it.name.split(',').map(s => s.trim()))
+        .filter(Boolean);
+
       setItemsText(itemsList.join(', '));
     } catch (e) {
       console.error('Failed to load items:', e);
       setError('Failed to load items for selected variant.');
       setItemsText('');
+    } finally {
+      setLoading(false);
     }
   };
+
 
   const onChangeVariant = async (e) => {
     const value = e.target.value;
