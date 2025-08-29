@@ -39,7 +39,12 @@
   font-size: 18px;
   margin: 0;
 }
-
+.clickable-item.selected {
+  border: 2px solid #3b82f6; /* A blue border to show selection */
+  background-color: #dbeafe; /* Light blue background */
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2); /* A nice glow effect */
+  transform: translateY(-2px); /* Slight lift */
+}
 /* Success Message */
 .success-message {
   display: flex;
