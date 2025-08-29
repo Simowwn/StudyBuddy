@@ -9,7 +9,7 @@ function Edit() {
 
   const [quizTitle, setQuizTitle] = useState('');
   const [variants, setVariants] = useState([]);
-  const [selectedVariantId, setSelectedVariantId] = useState(''); // Use ID for clarity and reliability
+  const [selectedVariantId, setSelectedVariantId] = useState('');
   const [itemsText, setItemsText] = useState('');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -28,7 +28,6 @@ function Edit() {
         const vs = await quizService.getVariantsByQuiz(quizId);
         setVariants(vs);
 
-        // Load items for the first variant found
         if (vs.length > 0) {
           const firstVariant = vs[0];
           setSelectedVariantId(firstVariant.id);
@@ -50,8 +49,8 @@ function Edit() {
   const onChangeVariant = async (e) => {
     const newVariantId = e.target.value;
     setSelectedVariantId(newVariantId);
-    setItemsText(''); // <--- KEY CHANGE: Immediately clear the text box
-    setOriginalItems([]); // and the original items state
+    setItemsText(''); // <--- KEY CHANGE: Clear the textbox immediately
+    setOriginalItems([]); // and clear the original items state
     setError('');
     setSuccessMessage('');
 
@@ -64,7 +63,7 @@ function Edit() {
       const variantItems = await quizService.getItemsByVariant(newVariantId);
       const names = variantItems.map(item => item.name).join(', ');
       setItemsText(names);
-      setOriginalItems(variantItems); // Store the fetched items for comparison on save
+      setOriginalItems(variantItems);
     } catch (e) {
       console.error('Failed to load items:', e);
       setError('Failed to load items for selected variant.');
@@ -86,7 +85,6 @@ function Edit() {
     const currentNames = itemsText.split(',').map(s => s.trim()).filter(Boolean);
     const originalNames = originalItems.map(item => item.name);
 
-    // Filter for items to be added and deleted
     const itemsToAdd = currentNames.filter(name => !originalNames.includes(name));
     const itemsToDelete = originalItems.filter(item => !currentNames.includes(item.name));
 
@@ -98,13 +96,11 @@ function Edit() {
     try {
       setSaving(true);
       
-      // Perform deletions and creations in parallel
       await Promise.all([
         ...itemsToDelete.map(item => quizService.deleteItem(item.id)),
         ...itemsToAdd.map(name => quizService.createItem({ name, variant: selectedVariantId }))
       ]);
 
-      // Refresh data after saving to ensure UI is in sync with backend
       const updatedItems = await quizService.getItemsByVariant(selectedVariantId);
       setItemsText(updatedItems.map(item => item.name).join(', '));
       setOriginalItems(updatedItems);
