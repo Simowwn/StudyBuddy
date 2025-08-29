@@ -41,7 +41,6 @@
 }
 
 .clickable-item{
-  background-color: #dbeafe;
   color: #1e40af;
   padding: 12px 20px;
   border-radius: 20px;
@@ -55,7 +54,7 @@
   align-items: center;
   justify-content: space-between; 
 }
-.clickable-item.selected {
+.selected {
   border: 2px solid #3b82f6; /* A blue border to show selection */
   background-color: #dbeafe; /* Light blue background */
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2); /* A nice glow effect */
