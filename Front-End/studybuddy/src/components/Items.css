@@ -252,6 +252,28 @@
   box-shadow: none;
 }
 
+.success-message {
+  color: #28a745;
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.save-button {
+  background-color: #28a745;
+}
+
+.continue-button {
+  background-color: #007bff;
+}
+
 @media (max-width: 768px) {
   .items-container {
     padding: 40px 20px;

@@ -12,7 +12,9 @@ function Edit() {
   const [selectedVariant, setSelectedVariant] = useState('');
   const [itemsText, setItemsText] = useState('');
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     const loadQuiz = async () => {
@@ -59,6 +61,7 @@ function Edit() {
     const value = e.target.value;
     setSelectedVariant(value);
     setError('');
+    setSuccessMessage('');
 
     const v = variants.find(vr => vr.name === value);
     if (!v) return;
@@ -76,9 +79,10 @@ function Edit() {
     }
   };
 
-  const onSubmit = async (e) => {
+  const onSave = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
 
     if (!selectedVariant) {
       setError('Please select a variant');
@@ -97,7 +101,7 @@ function Edit() {
     }
 
     try {
-      setLoading(true);
+      setSaving(true);
       // Strategy: delete existing items and recreate from comma-separated names
       const existing = await quizService.getItemsByVariant(selectedVariantObj.id);
       for (const it of (existing || [])) {
@@ -113,20 +117,24 @@ function Edit() {
       // Backend createItem supports comma-separated names in `name` field (per Items.js)
       await quizService.createItem({ name: names.join(', '), variant: selectedVariantObj.id });
 
-      navigate('/matching', {
-        state: {
-          quizId: Number(quizId),
-          quizTitle,
-          variants,
-          message: `Quiz "${quizTitle}" updated. Now adjust matching if needed.`
-        }
-      });
+      setSuccessMessage(`Items for variant "${selectedVariant}" have been saved successfully!`);
     } catch (e) {
       console.error('Failed to update items:', e);
       setError('Failed to update items. Please try again.');
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
+  };
+
+  const onContinueToMatching = () => {
+    navigate('/matching', {
+      state: {
+        quizId: Number(quizId),
+        quizTitle,
+        variants,
+        message: `Quiz "${quizTitle}" is ready. Now adjust matching if needed.`
+      }
+    });
   };
 
   return (
@@ -140,7 +148,7 @@ function Edit() {
       </div>
 
       <div className="items-content">
-        <form onSubmit={onSubmit}>
+        <form onSubmit={onSave}>
           <div className="form-group">
             <label>Quiz Title</label>
             <div className="quiz-title-display">
@@ -155,7 +163,7 @@ function Edit() {
               value={selectedVariant}
               onChange={onChangeVariant}
               required
-              disabled={loading}
+              disabled={loading || saving}
             >
               <option value="">Choose a variant...</option>
               {variants.map((variant) => (
@@ -169,11 +177,15 @@ function Edit() {
             <textarea
               id="itemsInput"
               value={itemsText}
-              onChange={(e) => { setItemsText(e.target.value); setError(''); }}
+              onChange={(e) => { 
+                setItemsText(e.target.value); 
+                setError(''); 
+                setSuccessMessage('');
+              }}
               placeholder="Enter your quiz items separated by commas (e.g., Question 1, Question 2, ...)"
               rows="6"
               required
-              disabled={loading}
+              disabled={loading || saving}
             />
             <p className="form-hint">
               Enter each quiz item separated by commas.
@@ -181,14 +193,24 @@ function Edit() {
           </div>
 
           {error && <div className="error-message">{error}</div>}
+          {successMessage && <div className="success-message">{successMessage}</div>}
 
           <div className="form-actions">
             <button
               type="submit"
-              className="items-button"
-              disabled={!selectedVariant || !itemsText.trim() || loading}
+              className="items-button save-button"
+              disabled={!selectedVariant || !itemsText.trim() || loading || saving}
             >
-              {loading ? 'Saving Changes...' : 'Save and Continue →'}
+              {saving ? 'Saving...' : 'Save Items'}
+            </button>
+            
+            <button
+              type="button"
+              className="items-button continue-button"
+              onClick={onContinueToMatching}
+              disabled={loading || saving}
+            >
+              Continue to Matching →
             </button>
           </div>
         </form>
