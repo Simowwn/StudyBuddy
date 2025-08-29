@@ -16,41 +16,33 @@ function Edit() {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
+  // Load quiz and variants
   useEffect(() => {
     const loadQuiz = async () => {
       setLoading(true);
       setError('');
       try {
-        // Fetch quiz core info
         const quiz = await quizService.getQuiz(quizId);
         const title = quiz.title || 'Untitled Quiz';
         setQuizTitle(title);
 
-        // Fetch variants for this quiz
         const vs = await quizService.getVariantsByQuiz(quizId);
         const filtered = (vs || []).filter(v => {
           const matchesId =
             String(v.quiz) === String(quizId) ||
             String(v.quiz_id) === String(quizId) ||
             String(v.quiz?.id) === String(quizId);
-
           const matchesTitle =
             (v.quiz_title && v.quiz_title === title) ||
             (v.quiz?.title && v.quiz?.title === title);
-
           return matchesId || matchesTitle;
         });
         setVariants(filtered);
 
-        // Auto-select first variant if present
         if (filtered.length > 0) {
           const first = filtered[0];
           setSelectedVariant(first.name);
-
-          // Load items for first variant
-          const variantItems = await quizService.getItemsByVariant(first.id);
-          const names = (variantItems || []).map(it => it.name);
-          setItemsText(names.join('\n')); // newline separated
+          await loadItemsForVariant(first.id);
         }
       } catch (e) {
         console.error('Failed to load quiz for edit:', e);
@@ -63,25 +55,34 @@ function Edit() {
     loadQuiz();
   }, [quizId]);
 
-  const onChangeVariant = async (e) => {
-    const value = e.target.value;
-    setSelectedVariant(value);
-    setError('');
-    setSuccessMessage('');
-
-    const v = variants.find(vr => vr.name === value);
-    if (!v) return;
-
+  // helper: load items for a variant and this quiz
+  const loadItemsForVariant = async (variantId) => {
     try {
       setLoading(true);
-      const variantItems = await quizService.getItemsByVariant(v.id);
-      const names = (variantItems || []).map(it => it.name);
-      setItemsText(names.join('\n')); // newline separated
+      const variantItems = (await quizService.getItemsByVariant(variantId)) || [];
+      const filteredItems = variantItems.filter(
+        it =>
+          String(it.quiz) === String(quizId) ||
+          String(it.quiz_id) === String(quizId) ||
+          String(it.quiz?.id) === String(quizId)
+      );
+      setItemsText(filteredItems.map(it => it.name).join(', '));
     } catch (e) {
       console.error('Failed to load items:', e);
       setError('Failed to load items for selected variant.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const onChangeVariant = async (e) => {
+    const value = e.target.value;
+    setSelectedVariant(value);
+    setError('');
+    setSuccessMessage('');
+    const v = variants.find(vr => vr.name === value);
+    if (v) {
+      await loadItemsForVariant(v.id);
     }
   };
 
@@ -94,7 +95,6 @@ function Edit() {
       setError('Please select a variant');
       return;
     }
-
     if (!itemsText.trim()) {
       setError('Please enter quiz items');
       return;
@@ -109,22 +109,27 @@ function Edit() {
     try {
       setSaving(true);
 
-      // Delete existing items for this variant
+      // delete only this quiz's items for the variant
       const existing = await quizService.getItemsByVariant(selectedVariantObj.id);
       for (const it of (existing || [])) {
-        try { await quizService.deleteItem(it.id); } catch (_) {}
+        if (String(it.quiz) === String(quizId)) {
+          try { await quizService.deleteItem(it.id); } catch (_) {}
+        }
       }
 
-      // Split text by line (one item per line)
-      const names = itemsText.split('\n').map(s => s.trim()).filter(Boolean);
+      // split and create each item individually
+      const names = itemsText.split(',').map(s => s.trim()).filter(Boolean);
       if (names.length === 0) {
         setError('Please enter at least one valid item');
         return;
       }
 
-      // Save each item separately
       for (const n of names) {
-        await quizService.createItem({ name: n, variant: selectedVariantObj.id });
+        await quizService.createItem({
+          name: n,
+          variant: selectedVariantObj.id,
+          quiz: quizId
+        });
       }
 
       setSuccessMessage(`Items for variant "${selectedVariant}" have been saved successfully!`);
@@ -192,13 +197,13 @@ function Edit() {
                 setError('');
                 setSuccessMessage('');
               }}
-              placeholder="Enter one quiz item per line (e.g., Question 1 ↵ Question 2 ↵ Question 3)"
+              placeholder="Enter your quiz items separated by commas (e.g., Question 1, Question 2, ...)"
               rows="6"
               required
               disabled={loading || saving}
             />
             <p className="form-hint">
-              Enter each quiz item on a separate line.
+              Enter each quiz item separated by commas.
             </p>
           </div>
 
