@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """
 Simple CORS test script to verify the Django backend is properly configured
