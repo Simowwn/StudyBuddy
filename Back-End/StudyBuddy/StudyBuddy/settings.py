@@ -163,13 +163,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Django REST framework configuration
 REST_FRAMEWORK = {
+    # Output formats
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',  # <== this is required
+        'rest_framework.renderers.BrowsableAPIRenderer',  # nice UI
     ],
+
+    # Authentication mechanisms
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        "rest_framework.renderers.JSONRenderer",
-        "rest_framework.renderers.BrowsableAPIRenderer",  # 👈 this gives the nice UI
-        # add JWT or TokenAuth if needed
+        'rest_framework_simplejwt.authentication.JWTAuthentication',  # JWT
+        'rest_framework.authentication.SessionAuthentication',        # Browsable API login
     ],
 }
