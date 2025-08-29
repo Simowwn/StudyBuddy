@@ -68,7 +68,7 @@ CORS_EXPOSE_HEADERS = ['content-type', 'x-csrftoken']
 
 # Additional CORS settings for better compatibility
 CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
-CORS_REPLACE_HTTPS_REFERER = True
+# CORS_REPLACE_HTTPS_REFERER = True
 
 # Handle preflight requests properly
 CORS_URLS_REGEX = r'^api/.*$'
