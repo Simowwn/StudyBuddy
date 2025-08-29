@@ -1,6 +1,6 @@
 // API Configuration
 const API_CONFIG = {
-  BASE_URL: process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:8000/api',
+  BASE_URL: process.env.REACT_APP_API_BASE_URL,
   ENDPOINTS: {
     LOGIN: '/users/login/',
     REGISTER: '/users/register/',
