@@ -263,6 +263,18 @@
 
 .continue-button {
   background-color: #c3e6cb;
+  border: none;
+  padding: 20px 40px;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  margin: 0 auto;
+  display: block;
+  box-shadow: 0 8px 25px rgba(55, 80, 235, 0.3);
+  outline: none;
 }
 
 @media (max-width: 768px) {
