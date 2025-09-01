@@ -28,28 +28,13 @@ function Items() {
     }
   }, [quizId, variants.length, navigate]);
 
-  // Load items when a variant is initially selected (e.g., on page load)
+  // Clear items when no variant is selected
   useEffect(() => {
-    const loadInitialItems = async () => {
-      if (variants.length > 0) {
-        const firstVariant = variants[0];
-        setSelectedVariantId(firstVariant.id);
-        setLoading(true);
-        try {
-          const variantItems = await quizService.getItemsByVariant(firstVariant.id);
-          const names = variantItems.map(item => item.name).join(', ');
-          setItemsText(names);
-          setOriginalItems(variantItems);
-        } catch (e) {
-          console.error('Failed to load initial items:', e);
-          setError('Failed to load items for the first variant.');
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-    loadInitialItems();
-  }, [variants]);
+    if (!selectedVariantId) {
+      setItemsText('');
+      setOriginalItems([]);
+    }
+  }, [selectedVariantId]);
 
   // Don't render if data is invalid
   if (!isValid) {
@@ -59,11 +44,11 @@ function Items() {
   const handleVariantChange = async (e) => {
     const newVariantId = e.target.value;
     setSelectedVariantId(newVariantId);
-    setItemsText(''); // Clear the text box immediately
+    setItemsText('');
     setOriginalItems([]);
     setError('');
     setSuccessMessage('');
-    
+
     if (!newVariantId) {
       return;
     }
@@ -71,7 +56,7 @@ function Items() {
     setLoading(true);
     try {
       const variantItems = await quizService.getItemsByVariant(newVariantId);
-      const names = variantItems.map(item => item.name).join(', ');
+      const names = variantItems.map((item) => item.name).join(', ');
       setItemsText(names);
       setOriginalItems(variantItems);
     } catch (e) {
@@ -105,11 +90,18 @@ function Items() {
 
     setSaving(true);
     try {
-      const currentNames = itemsText.split(',').map(s => s.trim()).filter(Boolean);
-      const originalNames = originalItems.map(item => item.name);
+      const currentNames = itemsText
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const originalNames = originalItems.map((item) => item.name);
 
-      const itemsToAdd = currentNames.filter(name => !originalNames.includes(name));
-      const itemsToDelete = originalItems.filter(item => !currentNames.includes(item.name));
+      const itemsToAdd = currentNames.filter(
+        (name) => !originalNames.includes(name)
+      );
+      const itemsToDelete = originalItems.filter(
+        (item) => !currentNames.includes(item.name)
+      );
 
       if (itemsToAdd.length === 0 && itemsToDelete.length === 0) {
         setSuccessMessage('No changes to save.');
@@ -118,16 +110,22 @@ function Items() {
       }
 
       await Promise.all([
-        ...itemsToDelete.map(item => quizService.deleteItem(item.id)),
-        ...itemsToAdd.map(name => quizService.createItem({ name, variant: selectedVariantId }))
+        ...itemsToDelete.map((item) => quizService.deleteItem(item.id)),
+        ...itemsToAdd.map((name) =>
+          quizService.createItem({ name, variant: selectedVariantId })
+        ),
       ]);
 
       const updatedItems = await quizService.getItemsByVariant(selectedVariantId);
-      setItemsText(updatedItems.map(item => item.name).join(', '));
+      setItemsText(updatedItems.map((item) => item.name).join(', '));
       setOriginalItems(updatedItems);
 
-      const variantName = variants.find(v => v.id === selectedVariantId)?.name;
-      setSuccessMessage(`Items for variant "${variantName}" have been saved successfully!`);
+      const variantName = variants.find(
+        (v) => v.id === selectedVariantId
+      )?.name;
+      setSuccessMessage(
+        `Items for variant "${variantName}" have been saved successfully!`
+      );
     } catch (error) {
       console.error('Error saving items:', error);
       setError(error.message || 'Failed to save items. Please try again.');
@@ -137,22 +135,22 @@ function Items() {
   };
 
   const handleContinue = () => {
-    navigate('/matching', { 
-      state: { 
+    navigate('/matching', {
+      state: {
         quizId: quizId,
         quizTitle: quizTitle,
         variants: variants,
-        message: `Quiz "${quizTitle}" is ready. Now let's set up the matching.`
-      } 
+        message: `Quiz "${quizTitle}" is ready. Now let's set up the matching.`,
+      },
     });
   };
 
   const handleBack = () => {
-    navigate('/variants', { 
-      state: { 
+    navigate('/variants', {
+      state: {
         quizId: quizId,
-        quizTitle: quizTitle 
-      } 
+        quizTitle: quizTitle,
+      },
     });
   };
 
@@ -165,7 +163,7 @@ function Items() {
         <h1>Add Quiz Items</h1>
         <p>Create the actual questions and answers for your quiz</p>
       </div>
-      
+
       <div className="items-content">
         <form onSubmit={handleSaveItems}>
           <div className="form-group">
@@ -186,41 +184,52 @@ function Items() {
             >
               <option value="">Choose a variant...</option>
               {variants.map((variant) => (
-                <option key={variant.id} value={variant.id}>{variant.name}</option>
+                <option key={variant.id} value={variant.id}>
+                  {variant.name}
+                </option>
               ))}
             </select>
           </div>
-     
 
           <div className="form-group">
             <label htmlFor="itemsInput">Quiz Items</label>
-            <textarea
-              id="itemsInput"
-              value={itemsText}
-              onChange={handleItemsChange}
-              placeholder="Enter your quiz items separated by commas (e.g., Question 1, Question 2, ...)"
-              rows="6"
-              required
-              disabled={!selectedVariantId || loading || saving}
-            />
-            <p className="form-hint">
-              Enter each quiz item separated by commas.
-            </p>
+            {!selectedVariantId ? (
+              <p className="form-hint">
+                Please select a variant to view or add quiz items.
+              </p>
+            ) : (
+              <textarea
+                id="itemsInput"
+                value={itemsText}
+                onChange={handleItemsChange}
+                placeholder="Enter your quiz items separated by commas (e.g., Question 1, Question 2, ...)"
+                rows="6"
+                required
+                disabled={!selectedVariantId || loading || saving}
+              />
+            )}
+            {selectedVariantId && (
+              <p className="form-hint">
+                Enter each quiz item separated by commas.
+              </p>
+            )}
           </div>
 
           {error && <div className="error-message">{error}</div>}
-          {successMessage && <div className="success-message">{successMessage}</div>}
-          
+          {successMessage && (
+            <div className="success-message">{successMessage}</div>
+          )}
+
           <div className="form-actions">
-            <button 
-              type="button" // Use type="button" to prevent form submission
+            <button
+              type="button"
               className="items-button save-button"
               onClick={handleSaveItems}
               disabled={!selectedVariantId || !itemsText.trim() || saving || loading}
             >
               {saving ? 'Saving...' : 'Save Items'}
             </button>
-            
+
             <button
               type="button"
               className="continue-button"
