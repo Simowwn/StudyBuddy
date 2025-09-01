@@ -36,16 +36,18 @@ class ItemViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         # Start with the base queryset (items belonging to the user's quizzes)
         queryset = Item.objects.filter(variant__quiz__user=self.request.user)
-
+        
         # Check for a 'variant' query parameter to filter by specific variant
-        variant_id = self.request.query_params.get('variant')
-        if variant_id:
+        variant_id = self.request.query_params.get('variant', None)
+        
+        if variant_id is not None and variant_id != '':
             try:
-                # Validate that the variant exists and belongs to the user
-                variant = Variant.objects.get(id=variant_id, quiz__user=self.request.user)
-                queryset = queryset.filter(variant=variant)
-            except Variant.DoesNotExist:
-                # Return empty queryset if variant doesn't exist or doesn't belong to user
+                # Convert to integer and filter
+                variant_id = int(variant_id)
+                # Filter the queryset by the variant ID - using variant field directly
+                queryset = queryset.filter(variant=variant_id)
+            except (ValueError, TypeError):
+                # If variant_id is not a valid integer, return empty queryset
                 queryset = queryset.none()
         
         return queryset
