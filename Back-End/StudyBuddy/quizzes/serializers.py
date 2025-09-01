@@ -1,8 +1,20 @@
 from rest_framework import serializers
 from .models import Quiz, Variant, Item
 
+# class ItemSerializer(serializers.ModelSerializer):
+#     variant = serializers.PrimaryKeyRelatedField(queryset=Variant.objects.all())  # dropdown for create
 class ItemSerializer(serializers.ModelSerializer):
-    variant = serializers.PrimaryKeyRelatedField(queryset=Variant.objects.all())  # dropdown for create
+    variant = serializers.PrimaryKeyRelatedField(queryset=Variant.objects.all())
+    variant_name = serializers.CharField(source="variant.name", read_only=True)
+
+    class Meta:
+        model = Item
+        fields = ["id", "name", "variant", "variant_name"]
+
+
+    class Meta:
+        model = Item
+        fields = ["id", "name", "variant", "variant_detail"]
 
     class Meta:
         model = Item
