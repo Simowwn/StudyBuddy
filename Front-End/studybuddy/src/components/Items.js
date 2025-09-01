@@ -24,6 +24,7 @@ function Items() {
   const [saving, setSaving] = useState(false);
 
   const [isValid, setIsValid] = useState(true);
+  const [allItems, setAllItems] = useState([]);
 
   // Get quiz data and variants from navigation state
 
@@ -33,12 +34,32 @@ function Items() {
 
   const variants = location.state?.variants || [];
 
-  // Check if we have valid data and redirect if needed
+  // Load all items for the current quiz
+  useEffect(() => {
+    const loadAllItems = async () => {
+      try {
+        const itemsPromises = variants.map(variant => 
+          quizService.getItemsByVariant(variant.id)
+            .then(items => items.map(item => ({ ...item, variantName: variant.name })))
+        );
+        
+        const allVariantItems = await Promise.all(itemsPromises);
+        setAllItems(allVariantItems.flat());
+      } catch (error) {
+        console.error("Error loading items:", error);
+        setError("Failed to load items. Please try again.");
+      }
+    };
 
+    if (variants.length > 0) {
+      loadAllItems();
+    }
+  }, [variants]);
+
+  // Check if we have valid data and redirect if needed
   useEffect(() => {
     if (!quizId || !variants.length) {
       setIsValid(false);
-
       navigate("/quiz");
     }
   }, [quizId, variants.length, navigate]);
@@ -261,6 +282,22 @@ function Items() {
             </button>
           </div>
         </form>
+      </div>
+
+      <div className="all-items-section">
+        <h3>All Items in {quizTitle}</h3>
+        {allItems.length > 0 ? (
+          <div className="items-grid">
+            {allItems.map((item, index) => (
+              <div key={item.id || index} className="item-card">
+                <div className="item-variant">{item.variantName}</div>
+                <div className="item-name">{item.name}</div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p>No items have been added to any variant yet.</p>
+        )}
       </div>
     </div>
   );
