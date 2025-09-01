@@ -29,10 +29,20 @@ class ItemViewSet(viewsets.ModelViewSet):
     serializer_class = ItemSerializer
     permission_classes = [IsAuthenticated]
     
+    # def get_queryset(self):
+    #     # Only return items of variants that belong to quizzes owned by the current user
+    #     return Item.objects.filter(variant__quiz__user=self.request.user)
     def get_queryset(self):
-        # Only return items of variants that belong to quizzes owned by the current user
-        return Item.objects.filter(variant__quiz__user=self.request.user)
+        # Start with the base queryset (items belonging to the user's quizzes)
+        queryset = Item.objects.filter(variant__quiz__user=self.request.user)
 
+        # Check for a 'variant' query parameter
+        variant_id = self.request.query_params.get('variant')
+        if variant_id:
+            # If the parameter exists, filter the queryset by the variant ID
+            queryset = queryset.filter(variant__id=variant_id)
+        
+        return queryset    
     def create(self, request, *args, **kwargs):
         name_field = request.data.get("name", "")
         variant = request.data.get("variant")
