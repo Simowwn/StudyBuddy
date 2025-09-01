@@ -13,8 +13,6 @@ function Items() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isValid, setIsValid] = useState(true);
-  const [originalItems, setOriginalItems] = useState([]);
-  const [hasLoadedItems, setHasLoadedItems] = useState(false);
 
   // Get quiz data and variants from navigation state
   const quizId = location.state?.quizId;
@@ -29,52 +27,26 @@ function Items() {
     }
   }, [quizId, variants.length, navigate]);
 
-  // Clear items when no variant is selected
-  useEffect(() => {
-    if (!selectedVariantId) {
-      setItemsText('');
-      setOriginalItems([]);
-      setHasLoadedItems(false);
-    }
-  }, [selectedVariantId]);
-
-  // Don't render if data is invalid
-  if (!isValid) {
-    return null;
-  }
-
-  const handleVariantChange = (e) => {
+  // Handle variant change and auto-load items
+  const handleVariantChange = async (e) => {
     const newVariantId = e.target.value;
     setSelectedVariantId(newVariantId);
     setItemsText('');
-    setOriginalItems([]);
     setError('');
     setSuccessMessage('');
-    setHasLoadedItems(false);
 
-    // Don't auto-load items when variant is selected
-    // Let user start with empty textarea for better UX
-  };
-
-  const loadExistingItems = async () => {
-    if (!selectedVariantId || hasLoadedItems) return;
-    
-    setLoading(true);
-    try {
-      const variantItems = await quizService.getItemsByVariant(selectedVariantId);
-      if (variantItems.length > 0) {
+    if (newVariantId) {
+      setLoading(true);
+      try {
+        const variantItems = await quizService.getItemsByVariant(newVariantId);
         const names = variantItems.map((item) => item.name).join(', ');
         setItemsText(names);
-        setOriginalItems(variantItems);
-        const variantName = variants.find(v => v.id === selectedVariantId)?.name;
-        setSuccessMessage(`Loaded ${variantItems.length} existing items for variant "${variantName}"`);
+      } catch (e) {
+        console.error('Failed to load items for variant:', e);
+        setError('Failed to load existing items for this variant.');
+      } finally {
+        setLoading(false);
       }
-      setHasLoadedItems(true);
-    } catch (e) {
-      console.error('Failed to load items:', e);
-      setError('Failed to load existing items.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -101,42 +73,29 @@ function Items() {
 
     setSaving(true);
     try {
-      // If we haven't loaded existing items yet, load them first to avoid conflicts
-      if (!hasLoadedItems) {
-        const existingItems = await quizService.getItemsByVariant(selectedVariantId);
-        setOriginalItems(existingItems);
-        setHasLoadedItems(true);
-      }
+      // Step 1: Delete all existing items for the selected variant
+      const existingItems = await quizService.getItemsByVariant(selectedVariantId);
+      await Promise.all(
+        existingItems.map((item) => quizService.deleteItem(item.id))
+      );
 
-      const currentNames = itemsText
+      // Step 2: Create new items from the text area
+      const names = itemsText
         .split(',')
         .map((s) => s.trim())
         .filter(Boolean);
-      const originalNames = originalItems.map((item) => item.name);
 
-      const itemsToAdd = currentNames.filter(
-        (name) => !originalNames.includes(name)
-      );
-      const itemsToDelete = originalItems.filter(
-        (item) => !currentNames.includes(item.name)
-      );
-
-      if (itemsToAdd.length === 0 && itemsToDelete.length === 0) {
-        setSuccessMessage('No changes to save.');
+      if (names.length === 0) {
+        setError('Please enter at least one valid item.');
         setSaving(false);
         return;
       }
 
-      await Promise.all([
-        ...itemsToDelete.map((item) => quizService.deleteItem(item.id)),
-        ...itemsToAdd.map((name) =>
-          quizService.createItem({ name, variant: selectedVariantId })
-        ),
-      ]);
-
-      const updatedItems = await quizService.getItemsByVariant(selectedVariantId);
-      setItemsText(updatedItems.map((item) => item.name).join(', '));
-      setOriginalItems(updatedItems);
+      await Promise.all(
+        names.map((name) =>
+          quizService.createItem({ name, variant: selectedVariantId, quiz: quizId })
+        )
+      );
 
       const variantName = variants.find(
         (v) => v.id === selectedVariantId
@@ -171,6 +130,10 @@ function Items() {
       },
     });
   };
+
+  if (!isValid) {
+    return null;
+  }
 
   return (
     <div className="items-form">
@@ -211,12 +174,14 @@ function Items() {
 
           <div className="form-group">
             <label htmlFor="itemsInput">Quiz Items</label>
-            {!selectedVariantId ? (
-              <p className="form-hint">
-                Please select a variant to add quiz items.
-              </p>
+            {loading ? (
+              <p className="loading-message">Loading items...</p>
             ) : (
-              <>
+              !selectedVariantId ? (
+                <p className="form-hint">
+                  Please select a variant to add quiz items.
+                </p>
+              ) : (
                 <textarea
                   id="itemsInput"
                   value={itemsText}
@@ -224,22 +189,9 @@ function Items() {
                   placeholder="Enter your quiz items separated by commas (e.g., Question 1, Question 2, ...)"
                   rows="6"
                   required
-                  disabled={loading || saving}
+                  disabled={saving}
                 />
-                {selectedVariantId && !hasLoadedItems && (
-                  <div className="form-actions-inline">
-                    <button
-                      type="button"
-                      className="load-existing-button"
-                      onClick={loadExistingItems}
-                      disabled={loading || saving}
-                    >
-                      {loading ? 'Loading...' : 'Load Existing Items'}
-                    </button>
-                    <span className="or-text">or start fresh above</span>
-                  </div>
-                )}
-              </>
+              )
             )}
             {selectedVariantId && (
               <p className="form-hint">
@@ -255,9 +207,8 @@ function Items() {
 
           <div className="form-actions">
             <button
-              type="button"
+              type="submit"
               className="items-button save-button"
-              onClick={handleSaveItems}
               disabled={!selectedVariantId || !itemsText.trim() || saving || loading}
             >
               {saving ? 'Saving...' : 'Save Items'}
@@ -267,7 +218,7 @@ function Items() {
               type="button"
               className="continue-button"
               onClick={handleContinue}
-              disabled={!selectedVariantId || saving || loading}
+              disabled={loading || saving}
             >
               Continue to Matching →
             </button>
