@@ -14,6 +14,7 @@ function Items() {
   const [saving, setSaving] = useState(false);
   const [isValid, setIsValid] = useState(true);
   const [originalItems, setOriginalItems] = useState([]);
+  const [hasLoadedItems, setHasLoadedItems] = useState(false);
 
   // Get quiz data and variants from navigation state
   const quizId = location.state?.quizId;
@@ -33,6 +34,7 @@ function Items() {
     if (!selectedVariantId) {
       setItemsText('');
       setOriginalItems([]);
+      setHasLoadedItems(false);
     }
   }, [selectedVariantId]);
 
@@ -41,27 +43,36 @@ function Items() {
     return null;
   }
 
-  const handleVariantChange = async (e) => {
+  const handleVariantChange = (e) => {
     const newVariantId = e.target.value;
     setSelectedVariantId(newVariantId);
     setItemsText('');
     setOriginalItems([]);
     setError('');
     setSuccessMessage('');
+    setHasLoadedItems(false);
 
-    if (!newVariantId) {
-      return;
-    }
+    // Don't auto-load items when variant is selected
+    // Let user start with empty textarea for better UX
+  };
 
+  const loadExistingItems = async () => {
+    if (!selectedVariantId || hasLoadedItems) return;
+    
     setLoading(true);
     try {
-      const variantItems = await quizService.getItemsByVariant(newVariantId);
-      const names = variantItems.map((item) => item.name).join(', ');
-      setItemsText(names);
-      setOriginalItems(variantItems);
+      const variantItems = await quizService.getItemsByVariant(selectedVariantId);
+      if (variantItems.length > 0) {
+        const names = variantItems.map((item) => item.name).join(', ');
+        setItemsText(names);
+        setOriginalItems(variantItems);
+        const variantName = variants.find(v => v.id === selectedVariantId)?.name;
+        setSuccessMessage(`Loaded ${variantItems.length} existing items for variant "${variantName}"`);
+      }
+      setHasLoadedItems(true);
     } catch (e) {
       console.error('Failed to load items:', e);
-      setError('Failed to load items for selected variant.');
+      setError('Failed to load existing items.');
     } finally {
       setLoading(false);
     }
@@ -90,6 +101,13 @@ function Items() {
 
     setSaving(true);
     try {
+      // If we haven't loaded existing items yet, load them first to avoid conflicts
+      if (!hasLoadedItems) {
+        const existingItems = await quizService.getItemsByVariant(selectedVariantId);
+        setOriginalItems(existingItems);
+        setHasLoadedItems(true);
+      }
+
       const currentNames = itemsText
         .split(',')
         .map((s) => s.trim())
@@ -195,18 +213,33 @@ function Items() {
             <label htmlFor="itemsInput">Quiz Items</label>
             {!selectedVariantId ? (
               <p className="form-hint">
-                Please select a variant to view or add quiz items.
+                Please select a variant to add quiz items.
               </p>
             ) : (
-              <textarea
-                id="itemsInput"
-                value={itemsText}
-                onChange={handleItemsChange}
-                placeholder="Enter your quiz items separated by commas (e.g., Question 1, Question 2, ...)"
-                rows="6"
-                required
-                disabled={!selectedVariantId || loading || saving}
-              />
+              <>
+                <textarea
+                  id="itemsInput"
+                  value={itemsText}
+                  onChange={handleItemsChange}
+                  placeholder="Enter your quiz items separated by commas (e.g., Question 1, Question 2, ...)"
+                  rows="6"
+                  required
+                  disabled={loading || saving}
+                />
+                {selectedVariantId && !hasLoadedItems && (
+                  <div className="form-actions-inline">
+                    <button
+                      type="button"
+                      className="load-existing-button"
+                      onClick={loadExistingItems}
+                      disabled={loading || saving}
+                    >
+                      {loading ? 'Loading...' : 'Load Existing Items'}
+                    </button>
+                    <span className="or-text">or start fresh above</span>
+                  </div>
+                )}
+              </>
             )}
             {selectedVariantId && (
               <p className="form-hint">
