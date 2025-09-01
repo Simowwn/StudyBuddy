@@ -44,8 +44,8 @@ class ItemViewSet(viewsets.ModelViewSet):
             try:
                 # Convert to integer and filter
                 variant_id = int(variant_id)
-                # Filter the queryset by the variant ID - using variant field directly
-                queryset = queryset.filter(variant=variant_id)
+                # Filter the queryset by the variant ID using variant_id field
+                queryset = queryset.filter(variant_id=variant_id)
             except (ValueError, TypeError):
                 # If variant_id is not a valid integer, return empty queryset
                 queryset = queryset.none()
