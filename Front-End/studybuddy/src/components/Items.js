@@ -40,7 +40,11 @@ function Items() {
       try {
         const itemsPromises = variants.map(variant => 
           quizService.getItemsByVariant(variant.id)
-            .then(items => items.map(item => ({ ...item, variantName: variant.name })))
+            .then(items => 
+              items
+                .filter(item => item.quiz === quizId) // Only include items for current quiz
+                .map(item => ({ ...item, variantName: variant.name }))
+            )
         );
         
         const allVariantItems = await Promise.all(itemsPromises);
@@ -51,10 +55,10 @@ function Items() {
       }
     };
 
-    if (variants.length > 0) {
+    if (variants.length > 0 && quizId) {
       loadAllItems();
     }
-  }, [variants]);
+  }, [variants, quizId]);
 
   // Check if we have valid data and redirect if needed
   useEffect(() => {
