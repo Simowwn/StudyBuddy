@@ -43,36 +43,13 @@ function Items() {
     }
   }, [quizId, variants.length, navigate]);
 
-  // Handle variant change and auto-load items
-
-  const handleVariantChange = async (e) => {
+  // Handle variant change
+  const handleVariantChange = (e) => {
     const newVariantId = e.target.value;
-
     setSelectedVariantId(newVariantId);
-
     setItemsText("");
-
     setError("");
-
     setSuccessMessage("");
-
-    if (newVariantId) {
-      setLoading(true);
-
-      try {
-        const variantItems = await quizService.getItemsByVariant(newVariantId);
-
-        const names = variantItems.map((item) => item.name).join(", ");
-
-        setItemsText(names);
-      } catch (e) {
-        console.error("Failed to load items for variant:", e);
-
-        setError("Failed to load existing items for this variant.");
-      } finally {
-        setLoading(false);
-      }
-    }
   };
 
   const handleItemsChange = (e) => {
