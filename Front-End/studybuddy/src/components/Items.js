@@ -24,7 +24,7 @@ function Items() {
   const [saving, setSaving] = useState(false);
 
   const [isValid, setIsValid] = useState(true);
-  const [allItems, setAllItems] = useState([]);
+  const [currentVariantItems, setCurrentVariantItems] = useState([]);
 
   // Get quiz data and variants from navigation state
 
@@ -34,31 +34,29 @@ function Items() {
 
   const variants = location.state?.variants || [];
 
-  // Load all items for the current quiz
+  // Load items when variant changes
   useEffect(() => {
-    const loadAllItems = async () => {
+    const loadItems = async () => {
+      if (!selectedVariantId) return;
+      
       try {
-        const itemsPromises = variants.map(variant => 
-          quizService.getItemsByVariant(variant.id)
-            .then(items => 
-              items
-                .filter(item => item.quiz === quizId) // Only include items for current quiz
-                .map(item => ({ ...item, variantName: variant.name }))
-            )
+        setLoading(true);
+        const variantItems = (await quizService.getItemsByVariant(selectedVariantId)) || [];
+        const filteredItems = variantItems.filter(
+          item => String(item.quiz) === String(quizId)
         );
-        
-        const allVariantItems = await Promise.all(itemsPromises);
-        setAllItems(allVariantItems.flat());
+        setCurrentVariantItems(filteredItems);
+        setItemsText(filteredItems.map(item => item.name).join(', '));
       } catch (error) {
         console.error("Error loading items:", error);
         setError("Failed to load items. Please try again.");
+      } finally {
+        setLoading(false);
       }
     };
 
-    if (variants.length > 0 && quizId) {
-      loadAllItems();
-    }
-  }, [variants, quizId]);
+    loadItems();
+  }, [selectedVariantId, quizId]);
 
   // Check if we have valid data and redirect if needed
   useEffect(() => {
@@ -149,14 +147,8 @@ function Items() {
         (v) => v.id === selectedVariantId
       )?.name;
 
-      // Update the allItems state with the new items
-      setAllItems(prevItems => [
-        ...prevItems.filter(item => item.variant !== selectedVariantId),
-        ...newItems.map(item => ({
-          ...item,
-          variantName: variantName
-        }))
-      ]);
+      // Update the current variant items
+      setCurrentVariantItems(newItems);
 
       setSuccessMessage(
         `Items for variant "${variantName}" have been saved successfully!`
@@ -298,18 +290,21 @@ function Items() {
       </div>
 
       <div className="all-items-section">
-        <h3>All Items in {quizTitle}</h3>
-        {allItems.length > 0 ? (
-          <div className="items-grid">
-            {allItems.map((item, index) => (
-              <div key={item.id || index} className="item-card">
-                <div className="item-variant">{item.variantName}</div>
-                <div className="item-name">{item.name}</div>
-              </div>
-            ))}
-          </div>
+        <h3>Current Variant Items</h3>
+        {selectedVariantId ? (
+          currentVariantItems.length > 0 ? (
+            <div className="items-grid">
+              {currentVariantItems.map((item, index) => (
+                <div key={item.id || index} className="item-card">
+                  <div className="item-name">{item.name}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p>No items have been added to this variant yet.</p>
+          )
         ) : (
-          <p>No items have been added to any variant yet.</p>
+          <p>Select a variant to view its items.</p>
         )}
       </div>
     </div>
