@@ -135,7 +135,7 @@ function Items() {
         return;
       }
 
-      await Promise.all(
+      const newItems = await Promise.all(
         names.map((name) =>
           quizService.createItem({
             name,
@@ -148,6 +148,15 @@ function Items() {
       const variantName = variants.find(
         (v) => v.id === selectedVariantId
       )?.name;
+
+      // Update the allItems state with the new items
+      setAllItems(prevItems => [
+        ...prevItems.filter(item => item.variant !== selectedVariantId),
+        ...newItems.map(item => ({
+          ...item,
+          variantName: variantName
+        }))
+      ]);
 
       setSuccessMessage(
         `Items for variant "${variantName}" have been saved successfully!`
