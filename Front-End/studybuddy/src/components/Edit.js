@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import quizService from '../services/quizService';
 import './Items.css';
-import { toast } from 'react-toastify';
 
 function Edit() {
   const { quizId } = useParams();
@@ -47,7 +46,7 @@ function Edit() {
         }
       } catch (e) {
         console.error('Failed to load quiz for edit:', e);
-        setError('Failed to load quiz.');
+        window.alert('Failed to load quiz.');
       } finally {
         setLoading(false);
       }
@@ -136,7 +135,7 @@ function Edit() {
       setSuccessMessage(`Items for variant "${selectedVariant}" have been saved successfully!`);
     } catch (e) {
       console.error('Failed to update items:', e);
-      setError('Failed to update items. Please try again.');
+      window.alert('Failed to save quiz.');
     } finally {
       setSaving(false);
     }
@@ -158,7 +157,7 @@ function Edit() {
       try {
         setLoading(true);
         await quizService.deleteQuiz(quizId);
-        toast.success(`Quiz "${quizTitle}" has been deleted successfully.`);
+        window.alert(`Quiz "${quizTitle}" has been deleted successfully.`);
         navigate('/');
       } catch (error) {
         console.error('Failed to delete quiz:', error);
