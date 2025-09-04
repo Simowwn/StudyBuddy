@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -34,6 +34,12 @@ function Items() {
 
   const variants = location.state?.variants || [];
 
+  // Memoize first variant id for stable dependency
+  const firstVariantId = useMemo(() => {
+    const first = variants && variants.length > 0 ? variants[0] : null;
+    return first?.id ? String(first.id) : "";
+  }, [variants]);
+
   // Load items when variant changes
   useEffect(() => {
     const loadItems = async () => {
@@ -42,8 +48,11 @@ function Items() {
       try {
         setLoading(true);
         const variantItems = (await quizService.getItemsByVariant(selectedVariantId)) || [];
-        const filteredItems = variantItems.filter(
-          item => String(item.quiz) === String(quizId)
+        // Be robust to different quiz id shapes coming from API
+        const filteredItems = variantItems.filter((item) =>
+          String(item.quiz) === String(quizId) ||
+          String(item.quiz_id) === String(quizId) ||
+          String(item.quiz?.id) === String(quizId)
         );
         setCurrentVariantItems(filteredItems);
         setItemsText(filteredItems.map(item => item.name).join(', '));
@@ -57,6 +66,13 @@ function Items() {
 
     loadItems();
   }, [selectedVariantId, quizId]);
+
+  // Set default selected variant if none selected yet
+  useEffect(() => {
+    if (!selectedVariantId && firstVariantId) {
+      setSelectedVariantId(firstVariantId);
+    }
+  }, [firstVariantId, selectedVariantId]);
 
   // Check if we have valid data and redirect if needed
   useEffect(() => {
@@ -105,15 +121,15 @@ function Items() {
     setSaving(true);
 
     try {
-      // Step 1: Delete all existing items for the selected variant
-
-      const existingItems = await quizService.getItemsByVariant(
-        selectedVariantId
+      // Step 1: Delete existing items for THIS QUIZ under the selected variant
+      const existingItems = (await quizService.getItemsByVariant(selectedVariantId)) || [];
+      const toDelete = existingItems.filter(
+        (item) =>
+          String(item.quiz) === String(quizId) ||
+          String(item.quiz_id) === String(quizId) ||
+          String(item.quiz?.id) === String(quizId)
       );
-
-      await Promise.all(
-        existingItems.map((item) => quizService.deleteItem(item.id))
-      );
+      await Promise.all(toDelete.map((item) => quizService.deleteItem(item.id)));
 
       // Step 2: Create new items from the text area
 
@@ -144,7 +160,7 @@ function Items() {
       );
 
       const variantName = variants.find(
-        (v) => v.id === selectedVariantId
+        (v) => String(v.id) === String(selectedVariantId)
       )?.name;
 
       // Update the current variant items
