@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import quizService from '../services/quizService';
 import './Items.css';
+import { toast } from 'react-toastify';
 
 function Edit() {
   const { quizId } = useParams();
@@ -152,6 +153,22 @@ function Edit() {
     });
   };
 
+  const handleDeleteQuiz = async () => {
+    if (window.confirm(`Are you sure you want to delete the quiz "${quizTitle}"? This action cannot be undone.`)) {
+      try {
+        setLoading(true);
+        await quizService.deleteQuiz(quizId);
+        toast.success(`Quiz "${quizTitle}" has been deleted successfully.`);
+        navigate('/');
+      } catch (error) {
+        console.error('Failed to delete quiz:', error);
+        setError('Failed to delete quiz. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   return (
     <div className="items-form">
       <div className="items-header">
@@ -228,7 +245,27 @@ function Edit() {
             >
               Continue to Matching →
             </button>
-    
+
+            <button
+              type="button"
+              className="delete-button"
+              onClick={handleDeleteQuiz}
+              disabled={loading || saving}
+              style={{
+                backgroundColor: '#ff4444',
+                color: 'white',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                marginLeft: '10px',
+                opacity: (loading || saving) ? 0.6 : 1,
+                pointerEvents: (loading || saving) ? 'none' : 'auto'
+              }}
+            >
+              {loading ? 'Deleting...' : 'Delete Quiz'}
+            </button>
           </div>
         </form>
       </div>
