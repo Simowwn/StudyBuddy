@@ -41,7 +41,14 @@ class QuizService {
 
   // Delete a quiz
   async deleteQuiz(id) {
-    return apiService.delete(`${API_CONFIG.ENDPOINTS.QUIZZES}${id}/`);
+    try {
+      // Use apiService.delete which will handle the request and response
+      await apiService.delete(`${API_CONFIG.ENDPOINTS.QUIZZES}${id}/`);
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting quiz:', error);
+      throw error;
+    }
   }
 
   // ===== VARIANT METHODS =====
@@ -153,4 +160,5 @@ class QuizService {
   }
 }
 
-export default new QuizService();
+const quizService = new QuizService();
+export default quizService;

@@ -185,19 +185,83 @@
 
 .form-actions {
   display: flex;
-  gap: 20px;
-  justify-content: space-between;
+  gap: 15px;
+  justify-content: flex-start;
   align-items: center;
   margin-top: 40px;
+  flex-wrap: wrap;
   border: none;
   outline: none;
 }
 
+.form-actions button {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 140px;
+}
+
+.form-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.form-actions button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Save Items Button */
+.items-button.save-button {
+  background: #4f46e5;
+  color: white;
+  border: none;
+}
+
+.items-button.save-button:hover:not(:disabled) {
+  background: #4338ca;
+  border-color: #3730a3;
+}
+
+/* Continue to Matching Button */
+.continue-button {
+  background: white;
+  color: #4f46e5;
+  border: 2px solid #e0e7ff;
+}
+
+.continue-button:hover:not(:disabled) {
+  background: #f5f3ff;
+  border-color: #c7d2fe;
+}
+
+/* Delete Button */
+.delete-button {
+  background: #ef4444;
+  color: white;
+  border: none;
+  margin-left: auto;
+}
+
+.delete-button:hover:not(:disabled) {
+  background: #dc2626;
+  border-color: #b91c1c;
+}
+
+/* Back Button */
 .back-button {
   background: #e2e8f0;
   color: #4a5568;
-  border: none;
-  border-style: solid;
+  border: 2px solid #e2e8f0;
   padding: 16px 32px;
   border-radius: 12px;
   font-size: 16px;

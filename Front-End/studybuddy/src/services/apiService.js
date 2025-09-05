@@ -139,8 +139,16 @@ class ApiService {
         method: 'DELETE',
         headers: this.getHeaders(includeAuth),
       });
+      
+      // For 204 No Content, return success
+      if (response.status === 204) {
+        return { success: true };
+      }
+      
+      // For other status codes, use the normal response handler
       return this.handleResponse(response);
     } catch (error) {
+      console.error('API Delete Error:', error);
       throw error;
     }
   }

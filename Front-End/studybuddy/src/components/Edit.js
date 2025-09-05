@@ -168,8 +168,10 @@ function Edit() {
       try {
         setLoading(true);
         await quizService.deleteQuiz(quizId);
-        window.alert(`Quiz "${quizTitle}" has been deleted successfully.`);
+        // Navigate to home page immediately after successful delete
         navigate('/');
+        // Show success message after navigation
+        window.alert(`Quiz "${quizTitle}" has been deleted successfully.`);
       } catch (error) {
         console.error('Failed to delete quiz:', error);
         setError('Failed to delete quiz. Please try again.');
