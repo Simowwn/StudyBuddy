@@ -241,31 +241,35 @@ function Edit() {
           {successMessage && <div className="success-message">{successMessage}</div>}
 
           <div className="form-actions">
-            <button
-              type="submit"
-              className="items-button save-button"
-              disabled={!selectedVariant || !itemsText.trim() || loading || saving}
-            >
-              {saving ? 'Saving...' : 'Save Items'}
-            </button>
+            <div className="primary-actions">
+              <button
+                type="submit"
+                className="btn btn-primary save-button"
+                disabled={!selectedVariant || !itemsText.trim() || loading || saving}
+              >
+                {saving ? 'Saving...' : 'Save Items'}
+              </button>
 
-            <button
-              type="button"
-              className="continue-button"
-              onClick={onContinueToMatching}
-              disabled={loading || saving}
-            >
-              Continue to Matching →
-            </button>
+              <button
+                type="button"
+                className="btn btn-secondary continue-button"
+                onClick={onContinueToMatching}
+                disabled={loading || saving}
+              >
+                Continue to Matching →
+              </button>
+            </div>
 
-            <button
-              type="button"
-              className="delete-button"
-              onClick={handleDeleteQuiz}
-              disabled={loading || saving}
-            >
-              {loading ? 'Deleting...' : 'Delete Quiz'}
-            </button>
+            <div className="danger-actions">
+              <button
+                type="button"
+                className="btn btn-danger delete-button"
+                onClick={handleDeleteQuiz}
+                disabled={loading || saving}
+              >
+                {loading ? 'Deleting...' : 'Delete Quiz'}
+              </button>
+            </div>
           </div>
         </form>
       </div>
