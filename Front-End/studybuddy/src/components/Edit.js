@@ -263,18 +263,6 @@ function Edit() {
               className="delete-button"
               onClick={handleDeleteQuiz}
               disabled={loading || saving}
-              style={{
-                backgroundColor: '#ff4444',
-                color: 'white',
-                border: 'none',
-                padding: '10px 20px',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                marginLeft: '10px',
-                opacity: (loading || saving) ? 0.6 : 1,
-                pointerEvents: (loading || saving) ? 'none' : 'auto'
-              }}
             >
               {loading ? 'Deleting...' : 'Delete Quiz'}
             </button>
