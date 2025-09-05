@@ -43,7 +43,26 @@ class ApiService {
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
 
-    return response.json();
+    // No Content
+    if (response.status === 204) {
+      return null;
+    }
+
+    // Gracefully handle empty or non-JSON bodies
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      const text = await response.text();
+      if (!text) return null;
+      try {
+        return JSON.parse(text);
+      } catch (_e) {
+        // Fallback in case server sends invalid JSON with 2xx
+        return null;
+      }
+    } else {
+      const text = await response.text();
+      return text || null;
+    }
   }
 
   // Retry request with new token

@@ -23,6 +23,13 @@ function Edit() {
       setError('');
       try {
         const quiz = await quizService.getQuiz(quizId);
+        
+        // Handle case where quiz is not found
+        if (!quiz) {
+          setError(`Quiz with ID ${quizId} not found.`);
+          return;
+        }
+        
         const title = quiz.title || 'Untitled Quiz';
         setQuizTitle(title);
 
@@ -37,16 +44,20 @@ function Edit() {
             (v.quiz?.title && v.quiz?.title === title);
           return matchesId || matchesTitle;
         });
-        setVariants(filtered);
-
-        if (filtered.length > 0) {
-          const first = filtered[0];
-          setSelectedVariant(first.name);
-          await loadItemsForVariant(first.id);
+        
+        if (filtered.length === 0) {
+          setError('No variants found for this quiz.');
+          return;
         }
+        
+        setVariants(filtered);
+        const first = filtered[0];
+        setSelectedVariant(first.name);
+        await loadItemsForVariant(first.id);
+        
       } catch (e) {
         console.error('Failed to load quiz for edit:', e);
-        window.alert('Failed to load quiz.');
+        setError(`Failed to load quiz: ${e.message || 'Quiz not found or server error'}`);
       } finally {
         setLoading(false);
       }

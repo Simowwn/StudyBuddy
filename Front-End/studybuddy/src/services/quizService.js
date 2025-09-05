@@ -11,7 +11,14 @@ class QuizService {
 
   // Get a specific quiz by ID
   async getQuiz(id) {
-    return apiService.get(`${API_CONFIG.ENDPOINTS.QUIZZES}${id}/`);
+    try {
+      return await apiService.get(`${API_CONFIG.ENDPOINTS.QUIZZES}${id}/`);
+    } catch (error) {
+      if (error.message.includes('404') || error.message.includes('Not Found')) {
+        return null; // Return null if quiz not found
+      }
+      throw error; // Re-throw other errors
+    }
   }
 
   // Create a new quiz
