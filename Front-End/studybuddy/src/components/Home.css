@@ -1,58 +1,65 @@
+/* Add this at the very top of your CSS file */
+* {
+  box-sizing: border-box;
+}
+
 .home-container {
   min-height: 100vh;
   background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 .home-header {
   background: linear-gradient(135deg, #3750EB 0%, #4f67f2 100%);
-  padding: 20px 0;
+  padding: 15px 0;
   box-shadow: 0 4px 20px rgba(55, 80, 235, 0.15);
   position: sticky;
   top: 0;
   z-index: 100;
+  width: 100%;
 }
 
 .header-content {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 30px;
+  padding: 0 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
 }
 
 .logo-section {
   display: flex;
   align-items: center;
   gap: 15px;
+  flex-shrink: 0;
 }
 
 .home-header h1 {
   color: white;
   margin: 0;
-  font-size: 32px;
+  font-size: clamp(20px, 5vw, 32px); /* Responsive font size */
   font-weight: 900;
-  letter-spacing: 2px;
+  letter-spacing: clamp(1px, 0.3vw, 2px);
   text-transform: uppercase;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: linear-gradient(135deg, #ffffff 0%, #f0f4ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-
   position: relative;
 }
-
-
 
 .logout-button {
   background: rgba(255, 255, 255, 0.15);
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 12px 24px;
+  padding: 10px 16px;
   border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
@@ -62,6 +69,8 @@
   align-items: center;
   gap: 8px;
   backdrop-filter: blur(10px);
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .logout-button:hover {
@@ -70,40 +79,40 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-.logout-icon {
-  font-size: 16px;
-}
-
 .home-main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 30px;
+  padding: 20px;
   text-align: center;
+  width: 100%;
 }
 
 .hero-section {
-  margin-top: 80px;
-  margin-bottom: 80px;
+  margin-top: clamp(40px, 8vh, 80px);
+  margin-bottom: clamp(40px, 8vh, 80px);
   width: 100%;
 }
 
 .hero-content {
   max-width: 800px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .hero-title {
-  font-size: 56px;
+  font-size: clamp(28px, 7vw, 56px);
   font-weight: 800;
   color: #1a202c;
-  margin-bottom: 32px;
-  line-height: 1.1;
+  margin-bottom: clamp(16px, 4vw, 32px);
+  line-height: 1.2;
   letter-spacing: -1px;
+  word-wrap: break-word;
+  hyphens: auto;
 }
 
 .title-accent {
@@ -114,33 +123,37 @@
 }
 
 .hero-description {
-  font-size: 20px;
+  font-size: clamp(16px, 4vw, 20px);
   color: #64748b;
   line-height: 1.6;
   margin: 0 auto;
   max-width: 600px;
+  padding: 0 10px;
 }
 
 .hero-stats {
   display: flex;
   justify-content: center;
-  gap: 60px;
-  margin-bottom: 60px;
+  gap: clamp(20px, 8vw, 60px);
+  margin-bottom: clamp(30px, 6vh, 60px);
+  flex-wrap: wrap;
 }
 
 .stat-item {
   text-align: center;
+  flex: 1;
+  min-width: 100px;
 }
 
 .stat-number {
-  font-size: 36px;
+  font-size: clamp(24px, 6vw, 36px);
   font-weight: 800;
   color: #3750EB;
   margin-bottom: 8px;
 }
 
 .stat-label {
-  font-size: 14px;
+  font-size: clamp(12px, 3vw, 14px);
   color: #64748b;
   font-weight: 500;
   text-transform: uppercase;
@@ -152,15 +165,16 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 0 10px;
 }
 
 .cta-button {
   background: linear-gradient(135deg, #3750EB, #4f67f2);
   color: white;
   border: none;
-  padding: 24px 48px;
+  padding: clamp(16px, 4vw, 24px) clamp(24px, 8vw, 48px);
   border-radius: 16px;
-  font-size: 18px;
+  font-size: clamp(16px, 4vw, 18px);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -171,6 +185,8 @@
   position: relative;
   overflow: hidden;
   margin-bottom: 20px;
+  width: auto;
+  max-width: 100%;
 }
 
 .cta-button::before {
@@ -194,16 +210,16 @@
 }
 
 .button-icon {
-  font-size: 20px;
+  font-size: clamp(16px, 4vw, 20px);
 }
 
 .button-text {
-  font-size: 18px;
+  font-size: clamp(16px, 4vw, 18px);
   font-weight: 600;
 }
 
 .button-arrow {
-  font-size: 20px;
+  font-size: clamp(16px, 4vw, 20px);
   transition: transform 0.3s ease;
 }
 
@@ -213,7 +229,7 @@
 
 .cta-subtitle {
   color: #64748b;
-  font-size: 14px;
+  font-size: clamp(12px, 3vw, 14px);
   font-weight: 500;
   margin: 0;
 }
@@ -226,12 +242,14 @@
   gap: 12px;
   padding: 16px 20px;
   border-radius: 12px;
-  margin: 20px 0;
+  margin: 20px 10px;
   font-weight: 500;
   position: relative;
   max-width: 600px;
+  width: calc(100% - 20px);
   margin-left: auto;
   margin-right: auto;
+  font-size: clamp(14px, 3.5vw, 16px);
 }
 
 .success-message {
@@ -246,69 +264,48 @@
   box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
 }
 
-.success-icon,
-.error-icon {
-  font-size: 18px;
-}
-
-.close-message {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-  margin-left: auto;
-  transition: background 0.3s ease;
-}
-
-.close-message:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
 /* Quizzes Section */
 .quizzes-section {
   width: 100%;
-  margin-top: 60px;
-  padding: 40px 0;
+  margin-top: clamp(30px, 6vh, 60px);
+  padding: clamp(20px, 4vh, 40px) 0;
 }
 
 .quizzes-section h3 {
-  font-size: 28px;
+  font-size: clamp(22px, 5vw, 28px);
   font-weight: 700;
   color: #1a202c;
-  margin-bottom: 30px;
+  margin-bottom: clamp(15px, 4vh, 30px);
   text-align: center;
+  padding: 0 10px;
 }
 
 .loading-message,
 .no-quizzes-message {
   text-align: center;
   color: #64748b;
-  font-size: 16px;
+  font-size: clamp(14px, 3.5vw, 16px);
   padding: 40px 20px;
-}
-
-.no-quizzes-message p {
-  margin: 8px 0;
 }
 
 .quizzes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+  gap: clamp(16px, 3vw, 24px);
   max-width: 1000px;
   margin: 0 auto;
+  padding: 0 10px;
 }
 
 .quiz-card {
   background: white;
   border-radius: 16px;
-  padding: 24px;
+  padding: clamp(16px, 4vw, 24px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   border: 1px solid rgba(55, 80, 235, 0.1);
   transition: all 0.3s ease;
+  width: 100%;
+  min-width: 0; /* Allow flexbox to shrink */
 }
 
 .quiz-card:hover {
@@ -322,23 +319,27 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 16px;
+  gap: 10px;
 }
 
 .quiz-card-header h4 {
-  font-size: 18px;
+  font-size: clamp(16px, 4vw, 18px);
   font-weight: 600;
   color: #1a202c;
   margin: 0;
   flex: 1;
+  word-wrap: break-word;
+  hyphens: auto;
 }
 
 .quiz-date {
-  font-size: 12px;
+  font-size: clamp(10px, 2.5vw, 12px);
   color: #64748b;
   background: #f1f5f9;
   padding: 4px 8px;
   border-radius: 6px;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .quiz-card-content {
@@ -347,25 +348,29 @@
 
 .quiz-card-content p {
   color: #64748b;
-  font-size: 14px;
+  font-size: clamp(12px, 3vw, 14px);
   margin: 4px 0;
+  word-wrap: break-word;
 }
 
 .quiz-card-actions {
   display: flex;
-  gap: 12px;
+  gap: clamp(8px, 2vw, 12px);
+  flex-wrap: wrap;
 }
 
 .view-quiz-btn,
 .edit-quiz-btn {
   flex: 1;
+  min-width: 80px;
   padding: 10px 16px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: clamp(12px, 3vw, 14px);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
   border: none;
+  text-align: center;
 }
 
 .view-quiz-btn {
@@ -390,16 +395,18 @@
   border-color: #ecce20;
 }
 
+/* Feature Preview Section */
 .features-preview {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 30px;
-  padding: 60px 0;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: clamp(20px, 4vw, 30px);
+  padding: clamp(30px, 6vh, 60px) 0;
+  width: 100%;
 }
 
 .feature-preview-item {
   background: white;
-  padding: 40px 30px;
+  padding: clamp(20px, 5vw, 40px) clamp(15px, 4vw, 30px);
   border-radius: 20px;
   text-align: center;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -414,14 +421,14 @@
 }
 
 .feature-preview-item .feature-icon {
-  font-size: 48px;
+  font-size: clamp(32px, 8vw, 48px);
   margin-bottom: 20px;
   display: block;
 }
 
 .feature-preview-item h3 {
   color: #1a202c;
-  font-size: 20px;
+  font-size: clamp(16px, 4vw, 20px);
   font-weight: 600;
   margin-bottom: 12px;
 }
@@ -430,90 +437,83 @@
   color: #64748b;
   line-height: 1.6;
   margin: 0;
+  font-size: clamp(14px, 3.5vw, 16px);
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-
+/* Mobile-specific styles */
 @media (max-width: 768px) {
-  .header-content {
-    padding: 0 20px;
-  }
-  
   .home-main {
-    padding: 0 20px;
-    justify-content: flex-start;
-    padding-top: 60px;
-  }
-  
-  .hero-section {
-    margin-bottom: 60px;
-  }
-  
-  .hero-title {
-    font-size: 40px;
-    margin-bottom: 24px;
-  }
-  
-  .hero-description {
-    font-size: 18px;
+    padding: 15px;
   }
   
   .hero-stats {
     flex-direction: column;
-    gap: 30px;
+    gap: 20px;
   }
   
   .cta-button {
-    padding: 20px 40px;
-    font-size: 16px;
-    gap: 12px;
+    width: 100%;
+    max-width: 300px;
+    justify-content: center;
   }
   
-  .button-text {
-    font-size: 16px;
+  .quiz-card-actions {
+    flex-direction: column;
   }
   
-  .features-preview {
-    grid-template-columns: 1fr;
-    gap: 20px;
-    padding: 40px 0;
-  }
-  
-  .feature-preview-item {
-    padding: 30px 20px;
-  }
-  
-  .home-header h1 {
-    font-size: 28px;
-    letter-spacing: 1.5px;
+  .view-quiz-btn,
+  .edit-quiz-btn {
+    width: 100%;
   }
 }
 
 @media (max-width: 480px) {
-  .hero-title {
-    font-size: 32px;
-    margin-bottom: 20px;
+  .header-content {
+    padding: 0 15px;
   }
   
-  .hero-description {
-    font-size: 16px;
+  .home-main {
+    padding: 10px;
+  }
+  
+  .logout-button {
+    padding: 8px 12px;
+    font-size: 12px;
   }
   
   .cta-button {
-    padding: 18px 32px;
     flex-direction: column;
+    gap: 8px;
+    padding: 16px 24px;
+  }
+  
+  .quiz-card {
+    padding: 16px;
+  }
+  
+  .quiz-card-header {
+    flex-direction: column;
+    align-items: flex-start;
     gap: 8px;
   }
   
-  .button-text {
-    font-size: 16px;
+  .quiz-date {
+    align-self: flex-end;
+  }
+}
+
+/* Ultra small screens */
+@media (max-width: 320px) {
+  .home-main {
+    padding: 8px;
   }
   
-  .home-header h1 {
-    font-size: 24px;
-    letter-spacing: 1px;
+  .logout-button {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+  
+  .quiz-card {
+    padding: 12px;
   }
 }
