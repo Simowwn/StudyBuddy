@@ -285,7 +285,7 @@ function Items() {
           <div className="form-actions">
             <button
               type="submit"
-              className="items-button save-button"
+              className="btn btn-primary save-button"
               disabled={
                 !selectedVariantId || !itemsText.trim() || saving || loading
               }
@@ -295,7 +295,7 @@ function Items() {
 
             <button
               type="button"
-              className="continue-button"
+              className="btn btn-secondary continue-button"
               onClick={handleContinue}
               disabled={loading || saving}
             >
